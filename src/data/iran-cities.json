@@ -1,0 +1,32 @@
+[
+    {
+        "name_en": "Tehran",
+        "name_fa": "تهران",
+        "latitude": 35.6892,
+        "longitude": 51.389
+    },
+    {
+        "name_en": "Isfahan",
+        "name_fa": "اصفهان",
+        "latitude": 32.6547,
+        "longitude": 51.666
+    },
+    {
+        "name_en": "Mashhad",
+        "name_fa": "مشهد",
+        "latitude": 36.2605,
+        "longitude": 59.6168
+    },
+    {
+        "name_en": "Shiraz",
+        "name_fa": "شیراز",
+        "latitude": 29.6037,
+        "longitude": 52.5414
+    },
+    {
+        "name_en": "Tabriz",
+        "name_fa": "تبریز",
+        "latitude": 38.0805,
+        "longitude": 46.2917
+    }
+]

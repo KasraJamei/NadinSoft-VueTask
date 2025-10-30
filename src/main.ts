@@ -9,7 +9,9 @@ import 'vuetify/styles'
 import { createVuetify } from 'vuetify'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
+// وارد کردن پیام‌های Vuetify برای فعال‌سازی RTL
 import { fa, en } from 'vuetify/locale' 
+// وارد کردن آیکون‌های MDI
 import '@mdi/font/css/materialdesignicons.css'
 
 import i18n from './i18n'
@@ -24,15 +26,16 @@ const vuetify = createVuetify({
     locale: 'en',
     fallback: 'en',
     messages: { fa, en },
-  },
-  rtl: {
-    fa: true,
+    // 💡 اصلاح نهایی: rtl باید داخل آبجکت locale باشد
+    rtl: {
+      fa: true,
+    },
   },
   theme: {
-      defaultTheme: 'light', 
+    defaultTheme: 'light', 
   },
   icons: {
-      defaultSet: 'mdi',
+    defaultSet: 'mdi',
   }
 })
 
