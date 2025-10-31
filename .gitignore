@@ -7,12 +7,22 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies and Build Artifacts
 node_modules
 .DS_Store
 dist
 dist-ssr
 coverage
 *.local
+
+# Node/Vite specific caches and outputs
+.vite/
+build
+out/
+
+# Environment Variables
+.env.local
+.env.*.local
 
 # Editor directories and files
 .vscode/*
@@ -24,13 +34,18 @@ coverage
 *.sln
 *.sw?
 
+# TypeScript and Caching
 *.tsbuildinfo
-
 .eslintcache
 
+# System Files
+Thumbs.db
+
+# Testing
 # Cypress
 /cypress/videos/
 /cypress/screenshots/
 
 # Vitest
 __screenshots__/
+/test-results/
