@@ -2,12 +2,13 @@ import { ref, watch, computed } from 'vue';
 import { defineStore } from 'pinia';
 import type { TodoItem } from './types';
 
-// Local Storage Key for the todo list
+// Key used for storing the todo list in Local Storage
 const STORAGE_KEY = 'todoList';
 
 /**
- * Helper function to load the todo list from Local Storage.
- * @returns {TodoItem[]} The loaded todo list or an empty array.
+ * Loads the todo list from Local Storage upon store initialization.
+ * Returns an empty array if no data is found or if parsing fails.
+ * @returns {TodoItem[]} The stored todo list or an empty array.
  */
 function loadTodos(): TodoItem[] {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -15,36 +16,42 @@ function loadTodos(): TodoItem[] {
         try {
             return JSON.parse(stored) as TodoItem[];
         } catch (e) {
-            console.error("Error loading todo list from Local Storage:", e);
+            console.error("Failed to load todo list from Local Storage. Using empty list.", e);
             return [];
         }
     }
     return [];
 }
 
+/**
+ * Defines the Todo Store using the Composition API pattern (Setup Store).
+ * This store manages the list of tasks, including CRUD operations and persistence 
+ * using Local Storage.
+ */
 export const useTodoStore = defineStore('todos', () => {
     
     // =======================================================================
-    // 1. STATE (using ref from Vue)
+    // 1. STATE: Reactive data representing the list of tasks
     // =======================================================================
     const todos = ref<TodoItem[]>(loadTodos());
 
     // =======================================================================
-    // 2. GETTERS (using computed from Vue)
+    // 2. GETTERS: Computed values for reactive data access (Equivalent to Store Getters)
     // =======================================================================
-    /** Returns the number of completed todos. */
+    
+    /** Returns the total count of tasks marked as completed. */
     const completedTodos = computed(() => todos.value.filter(todo => todo.isDone).length);
 
-    /** Returns the number of total todos. */
+    /** Returns the total number of tasks in the list. */
     const totalTodos = computed(() => todos.value.length);
     
     // =======================================================================
-    // 3. ACTIONS (using simple functions)
+    // 3. ACTIONS: Functions containing business logic and state mutations
     // =======================================================================
 
     /**
      * Adds a new todo item to the beginning of the list.
-     * @param text The text content of the new todo.
+     * @param {string} text - The text content of the new todo.
      */
     function addTodo(text: string) {
         if (!text.trim()) return;
@@ -54,53 +61,53 @@ export const useTodoStore = defineStore('todos', () => {
             text: text.trim(),
             isDone: false,
         };
-        todos.value.unshift(newTodo); // Mutate state
+        todos.value.unshift(newTodo); // Mutate state by adding to the start
     }
 
     /**
      * Removes a todo item based on its ID.
-     * @param id The ID of the todo to remove.
+     * @param {number} id - The ID of the todo to remove.
      */
     function removeTodo(id: number) {
-        todos.value = todos.value.filter(todo => todo.id !== id); // Mutate state
+        todos.value = todos.value.filter(todo => todo.id !== id); // Mutate state by filtering
     }
 
     /**
      * Toggles the completion status (isDone) of a specific todo item.
-     * @param id The ID of the todo to toggle.
+     * @param {number} id - The ID of the todo to toggle.
      */
     function toggleTodo(id: number) {
         const todo = todos.value.find(t => t.id === id);
         if (todo) {
-            todo.isDone = !todo.isDone; // Mutate state
+            todo.isDone = !todo.isDone; // Mutate the item within the array
         }
     }
     
     /**
      * Edits the text content of a specific todo item.
-     * @param id The ID of the todo to edit.
-     * @param newText The new text content.
+     * @param {number} id - The ID of the todo to edit.
+     * @param {string} newText - The new text content.
      */
     function editTodo(id: number, newText: string) {
         const todo = todos.value.find(t => t.id === id);
         if (todo && newText.trim()) {
-            todo.text = newText.trim(); // Mutate state
+            todo.text = newText.trim(); // Mutate the item within the array
         }
     }
 
     // =======================================================================
-    // 4. PERSISTENCE (using watch from Vue)
+    // 4. PERSISTENCE: Automatic saving to Local Storage via Vue watch
     // =======================================================================
     watch(
         todos,
         (newTodos) => {
-            // Saves changes to Local Storage whenever the todos array or its items change
+            // Saves changes to Local Storage automatically upon any deep mutation to the array
             localStorage.setItem(STORAGE_KEY, JSON.stringify(newTodos));
         },
-        { deep: true } // Monitor deep changes within the array and its items
+        { deep: true } // Crucial for monitoring changes within the todo items themselves
     );
 
-    // Return everything needed by components
+    // Expose State, Getters, and Actions to components
     return {
         todos,
         addTodo,

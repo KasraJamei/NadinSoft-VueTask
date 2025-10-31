@@ -1,47 +1,43 @@
-// src/main.ts
-import { createApp } from 'vue'
-import App from './App.vue'
-import router from './router'
-import { createPinia } from 'pinia'
+import { createApp } from 'vue';
+import App from './App.vue';
+import router from './router';
 
-// Vuetify
-import 'vuetify/styles'
-import { createVuetify } from 'vuetify'
-import * as components from 'vuetify/components'
-import * as directives from 'vuetify/directives'
-// وارد کردن پیام‌های Vuetify برای فعال‌سازی RTL
-import { fa, en } from 'vuetify/locale' 
-// وارد کردن آیکون‌های MDI
-import '@mdi/font/css/materialdesignicons.css'
+// 1. Vuetify imports
+import 'vuetify/styles'; // Import the Vuetify CSS
+import { createVuetify } from 'vuetify';
+import * as components from 'vuetify/components';
+import * as directives from 'vuetify/directives';
 
-import i18n from './i18n'
+// 2. Custom theme/icon setup
+import '@mdi/font/css/materialdesignicons.css'; // Ensure MDI icons are imported
 
-const app = createApp(App)
-const pinia = createPinia()
+// 3. Pinia setup
+import { createPinia } from 'pinia';
 
+// 4. i18n setup 
+import i18n from './i18n';
+
+
+// --- CREATE VUETIFY INSTANCE ---
 const vuetify = createVuetify({
   components,
   directives,
-  locale: {
-    locale: 'en',
-    fallback: 'en',
-    messages: { fa, en },
-    // 💡 اصلاح نهایی: rtl باید داخل آبجکت locale باشد
-    rtl: {
-      fa: true,
-    },
-  },
-  theme: {
-    defaultTheme: 'light', 
-  },
+  // Add other configurations like theme, icons, locales here
   icons: {
     defaultSet: 'mdi',
-  }
-})
+  },
+});
+// ------------------------------
 
-app.use(pinia)
-app.use(router)
-app.use(i18n)
-app.use(vuetify)
 
-app.mount('#app')
+// --- CREATE APP INSTANCE ---
+const app = createApp(App);
+
+app.use(createPinia());
+app.use(router);
+app.use(i18n);
+
+// اتصال Vuetify به اپلیکیشن
+app.use(vuetify);
+
+app.mount('#app');
