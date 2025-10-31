@@ -11,17 +11,34 @@ export interface UserSettings {
 
 /** Defines the structure for a single Todo item. */
 export interface TodoItem {
-    id: number;
+    id: number; 
     text: string;
-    isDone: boolean; // Flag to indicate if the task is completed
+    isDone: boolean;
 }
 
-/** * Defines the structure for city data, primarily used for weather lookup.
- * Contains necessary geographical coordinates.
- */
+/** * Defines the structure for city data, matching the JSON structure but adding Farsi name. */
 export interface CityData {
-    name_en: string; // English name for searching/display
-    name_fa: string; // Farsi name for display
+    city: string; // English name (matches JSON's 'city' field)
+    name_fa?: string; // Farsi name: Made OPTIONAL with '?'
+    lat: string; // Latitude (matches JSON's 'lat' field, as a string)
+    lng: string; // Longitude (matches JSON's 'lng' field, as a string)
+    // The rest of the fields (country, iso2, admin_name, etc.) are ignored for simplicity.
+}
+// =======================================================================
+// Weather Data Types
+// =======================================================================
+
+/** Defines the core structure of the current weather data from Open-Meteo API. */
+export interface CurrentWeather {
+    time: string; 
+    temperature: number; 
+    weathercode: number; 
+    windspeed: number; 
+}
+
+/** Defines the full API response structure for current weather. */
+export interface WeatherApiResponse {
     latitude: number;
     longitude: number;
+    current_weather: CurrentWeather;
 }
