@@ -1,26 +1,27 @@
-// src/stores/types.ts
-
-// انواع داده‌ای برای تنظیمات کاربر
+// Data types for user settings
 export type Theme = 'light' | 'dark';
 export type Locale = 'en' | 'fa';
 
+/** Defines the structure for user settings (persisted in Local Storage). */
 export interface UserSettings {
     name: string;
     theme: Theme;
     locale: Locale;
 }
 
-// تعریف ساختار یک آیتم Todo
+/** Defines the structure for a single Todo item. */
 export interface TodoItem {
     id: number;
     text: string;
-    isDone: boolean; // برای قابلیت علامت‌گذاری به عنوان انجام شده
+    isDone: boolean; // Flag to indicate if the task is completed
 }
 
-// تعریف ساختار داده‌های شهرها برای Autocomplete آب و هوا
+/** * Defines the structure for city data, primarily used for weather lookup.
+ * Contains necessary geographical coordinates.
+ */
 export interface CityData {
-    name_en: string; // نام انگلیسی برای جستجو
-    name_fa: string; // نام فارسی برای نمایش
+    name_en: string; // English name for searching/display
+    name_fa: string; // Farsi name for display
     latitude: number;
     longitude: number;
 }
