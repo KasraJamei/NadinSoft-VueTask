@@ -2,25 +2,23 @@
 import { ref, computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { CityData } from '@/stores/types';
+import { useWeatherStore } from '@/stores/weather';
 import citiesRawData from '@/data/iran-cities.json';
 
 const { t, locale } = useI18n();
+const weatherStore = useWeatherStore();
 
-/** The city object selected from the Autocomplete input. */
-const selectedCity = ref<CityData | null>(null);
+/** CRITICAL FIX: Load the saved city from the store immediately on setup */
+const selectedCity = ref<CityData | null>(weatherStore.getSavedCity);
 
-/** Stores the raw response from the Open-Meteo API. */
+const showSuccessSnackbar = ref(false);
 const weatherData = ref<any>(null);
 const isLoading = ref(false);
 const error = ref<string | null>(null);
 
-/** List of all cities imported from the JSON file. */
-const cities = citiesRawData as CityData[]; // اکنون Type Casting به دلیل تغییرات types.ts درست است
+const cities = citiesRawData as CityData[];
 
-/** * Maps temperature ranges to a simplified weather description, icon, color, 
- * and gradient for the modern UI widget.
- * @param {number} temp - The current temperature in Celsius.
- */
+// Mapping function 
 const getWeatherMapping = (temp: number) => {
     if (temp > 30) return { icon: 'mdi-weather-sunny', text: t('Very Hot'), color: 'red', gradient: 'to top right, #f8d49a, #ff9800' };
     if (temp > 20) return { icon: 'mdi-weather-partly-cloudy', text: t('Warm'), color: 'orange', gradient: 'to top right, #ffb74d, #ffa726' };
@@ -29,10 +27,7 @@ const getWeatherMapping = (temp: number) => {
     return { icon: 'mdi-weather-snowy', text: t('Cold'), color: 'cyan', gradient: 'to top right, #80deea, #4dd0e1' };
 };
 
-/**
- * Fetches the current weather data from the Open-Meteo API using the city's coordinates.
- * @param {CityData} city - The city object containing latitude and longitude.
- */
+// Fetch function
 async function fetchWeather(city: CityData) {
     isLoading.value = true;
     error.value = null;
@@ -55,30 +50,37 @@ async function fetchWeather(city: CityData) {
     }
 }
 
-/** * Watcher: Triggers API call whenever a new city is selected. */
+/** Watcher runs immediately to fetch weather for the saved city on load. */
 watch(selectedCity, (newCity) => {
     if (newCity) {
         fetchWeather(newCity);
     } else {
         weatherData.value = null;
     }
-});
+}, { immediate: true });
 
-/** Computed property for the city name based on the current locale. */
+/** Action to save the currently selected city and show a success message. */
+const saveCityToDashboard = () => {
+    if (selectedCity.value) {
+        weatherStore.saveWeatherCity(selectedCity.value);
+        showSuccessSnackbar.value = true; // Show the snackbar
+    }
+};
+
+const canSaveCity = computed(() => !!selectedCity.value);
+
 const cityName = computed(() => {
     return selectedCity.value
         ? (locale.value === 'fa' && selectedCity.value.name_fa ? selectedCity.value.name_fa : selectedCity.value.city)
         : '';
 });
 
-/** Computed property for the current temperature. */
 const temperature = computed(() => {
     return weatherData.value?.current_weather?.temperature !== undefined
         ? weatherData.value.current_weather.temperature
         : null;
 });
 
-/** Computed property that returns the UI mapping (icon, text, color) based on temperature. */
 const weatherDisplay = computed(() => {
     if (temperature.value !== null) {
         return getWeatherMapping(temperature.value);
@@ -86,12 +88,10 @@ const weatherDisplay = computed(() => {
     return { icon: 'mdi-cloud-question', text: t('Select City'), color: 'grey', gradient: 'to top right, #e0e0e0, #bdbdbd' };
 });
 
-/** Computed property for formatted temperature string. */
 const formattedTemperature = computed(() => {
     return temperature.value !== null ? `${temperature.value} °C` : '--';
 });
 
-/** Computed property for formatted wind speed string. */
 const windSpeed = computed(() => {
     return weatherData.value?.current_weather?.windspeed !== undefined
         ? `${weatherData.value.current_weather.windspeed} km/h`
@@ -115,7 +115,7 @@ const windSpeed = computed(() => {
 
             <v-autocomplete v-model="selectedCity" :items="cities" :label="t('enter_city')"
                 :item-title="locale === 'fa' ? 'name_fa' : 'city'" item-value="city" return-object variant="solo-filled"
-                density="comfortable" clearable rounded="lg" class="mb-6">
+                density="comfortable" clearable rounded="lg" class="mb-4">
                 <template v-slot:item="{ props, item }">
                     <v-list-item v-bind="props" :title="item.raw.name_fa || item.raw.city" :subtitle="item.raw.city">
                         <template v-slot:prepend>
@@ -125,6 +125,11 @@ const windSpeed = computed(() => {
                 </template>
             </v-autocomplete>
 
+            <v-btn v-if="canSaveCity" @click="saveCityToDashboard" color="primary" variant="flat" rounded="lg" block
+                class="mb-6 elevation-2 font-weight-bold">
+                <v-icon start>mdi-content-save-outline</v-icon>
+                {{ t('Save as Default City') }}
+            </v-btn>
             <v-alert v-if="isLoading" type="info" variant="tonal" class="mb-4 rounded-lg">
                 <v-progress-linear indeterminate color="info" class="mb-2"></v-progress-linear>
                 {{ t('Loading weather data...') }}
@@ -170,5 +175,14 @@ const windSpeed = computed(() => {
 
             </v-card>
         </v-card>
+
+        <v-snackbar v-model="showSuccessSnackbar" :timeout="3000" color="success" location="bottom right" rounded="lg">
+            <v-icon start>mdi-check-circle-outline</v-icon>
+            {{ t('Default city saved successfully!') }}
+        </v-snackbar>
     </v-container>
 </template>
+
+<style scoped>
+/* (Styles are good as they are) */
+</style>
