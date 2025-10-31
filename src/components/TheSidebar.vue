@@ -16,59 +16,37 @@ const settingsStore = useSettingsStore();
 
 // Navigation items logic (moved here from App.vue)
 const navItems = computed(() => [
-  { title: t('Dashboard'), icon: 'mdi-view-dashboard', to: { name: 'dashboard' } },
-  { title: t('Tasks'), icon: 'mdi-format-list-checks', to: { name: 'todos' } },
-  { title: t('Weather'), icon: 'mdi-weather-sunny-alert', to: { name: 'weather' } },
-  { title: t('Profile'), icon: 'mdi-account-circle', to: { name: 'profile' } },
+    { title: t('Dashboard'), icon: 'mdi-view-dashboard', to: { name: 'dashboard' } },
+    { title: t('Tasks'), icon: 'mdi-format-list-checks', to: { name: 'todos' } },
+    { title: t('Weather'), icon: 'mdi-weather-sunny-alert', to: { name: 'weather' } },
+    { title: t('Profile'), icon: 'mdi-account-circle', to: { name: 'profile' } },
 ]);
 
 const isLightTheme = computed(() => vuetifyTheme.global.name.value === 'light');
 </script>
 
 <template>
-  <v-navigation-drawer
-    v-model="drawerModel"
-    app
-    :temporary="$vuetify.display.mdAndDown"
-    width="250"
-    :color="isLightTheme ? 'grey-lighten-4' : undefined"
-  >
-    <v-list class="pa-2">
-        <v-list-item 
-            :title="settingsStore.userName" 
-            :subtitle="t('User Profile')"
-            class="mb-4 text-center rounded-lg primary text-white"
-            :to="{ name: 'profile' }"
-        >
-            <template v-slot:prepend>
-                <v-avatar color="white" class="ml-2">
-                    <v-icon color="primary">mdi-account-circle</v-icon>
-                </v-avatar>
-            </template>
-        </v-list-item>
-        
-        <v-divider class="mb-2"></v-divider>
+    <v-navigation-drawer v-model="drawerModel" app :temporary="$vuetify.display.mdAndDown" width="250"
+        :color="isLightTheme ? 'white' : undefined">
+        <v-list class="pa-2">
+            <v-list-item :title="settingsStore.userName" :subtitle="t('User Profile')"
+                class="mb-4 text-center rounded-lg elevation-2 mt-2"
+                :class="isLightTheme ? 'bg-grey-lighten-4' : 'bg-surface'" :to="{ name: 'profile' }">
+                <template v-slot:prepend>
+                    <v-avatar color="primary" class="ml-2">
+                        <v-icon color="white">mdi-account-circle</v-icon>
+                    </v-avatar>
+                </template>
+            </v-list-item>
 
-        <v-list-item
-            v-for="item in navItems"
-            :key="item.title"
-            :to="item.to"
-            :title="item.title"
-            :prepend-icon="item.icon"
-            link
-            color="primary"
-            rounded="lg"
-            class="my-1 font-weight-medium"
-            :active-class="'v-list-item--active elevation-2'"
-        ></v-list-item>
-    </v-list>
-  </v-navigation-drawer>
+            <v-divider class="mb-2"></v-divider>
+
+            <v-list-item v-for="item in navItems" :key="item.title" :to="item.to" :title="item.title"
+                :prepend-icon="item.icon" link rounded="lg" class="my-1 font-weight-medium"
+                active-class="bg-primary elevation-2 text-white">
+            </v-list-item>
+        </v-list>
+    </v-navigation-drawer>
 </template>
 
-<style scoped>
-/* Added general styling for the active state of list items */
-.v-list-item--active {
-  color: white !important;
-  background-color: var(--v-theme-primary);
-}
-</style>
+<style scoped></style>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted } from 'vue';
+import { computed, ref, onMounted, onUnmounted, watch } from 'vue'; // watch added here
 import { useTodoStore } from '@/stores/todos';
 import { useSettingsStore } from '@/stores/settings';
 import { useI18n } from 'vue-i18n';
@@ -38,19 +38,63 @@ const greeting = computed(() => {
         return 'Good Evening';
     }
 });
+// -------------------------------------
+
+// --- NEW: Typewriter Effect Logic ---
+const typedGreeting = ref('');
+const greetingText = computed(() => `${greeting.value}, ${userName.value}`); // Final text to type
+
+let typingTimeout: number | undefined;
+const isTypingComplete = ref(false);
+
+const startTyping = (textToType: string) => {
+    // Clear previous timeouts and reset state
+    if (typingTimeout !== undefined) {
+        clearTimeout(typingTimeout);
+    }
+    typedGreeting.value = '';
+    isTypingComplete.value = false;
+    let charIndex = 0;
+
+    const typeChar = () => {
+        if (charIndex < textToType.length) {
+            typedGreeting.value += textToType.charAt(charIndex);
+            charIndex++;
+            // Typing speed: 50ms per character
+            typingTimeout = window.setTimeout(typeChar, 50);
+        } else {
+            isTypingComplete.value = true;
+        }
+    };
+
+    // Start the typing process
+    typeChar();
+};
 
 onMounted(() => {
+    // Start clock timer
     timer = window.setInterval(() => {
         currentTime.value = new Date();
     }, 1000);
+
+    // Start typing the initial greeting
+    startTyping(greetingText.value);
+});
+
+// Watch for changes in the final greeting text (e.g., username change or time passing midnight)
+watch(greetingText, (newText) => {
+    startTyping(newText);
 });
 
 onUnmounted(() => {
     if (timer !== undefined) {
         clearInterval(timer);
     }
+    // Clear typing timeout when leaving the view
+    if (typingTimeout !== undefined) {
+        clearTimeout(typingTimeout);
+    }
 });
-// -------------------------------------
 </script>
 
 <template>
@@ -70,7 +114,7 @@ onUnmounted(() => {
                     <v-card-text class="pt-2">
                         <p class="text-h4 font-weight-black"
                             :class="currentTheme === 'dark' ? 'text-blue-lighten-3' : 'primary--text'">{{
-                            pendingTasksCount }}</p>
+                                pendingTasksCount }}</p>
                     </v-card-text>
                     <v-card-actions class="justify-center">
                         <v-btn text :color="currentTheme === 'dark' ? 'blue-lighten-3' : 'primary'" variant="tonal"
@@ -141,7 +185,8 @@ onUnmounted(() => {
             </p>
 
             <p class="text-h3 text-md-h2 font-weight-medium primary--text">
-                {{ greeting }}, {{ userName }}
+                {{ typedGreeting }}
+                <span v-if="!isTypingComplete" class="typing-cursor">|</span>
             </p>
         </div>
 
@@ -157,5 +202,25 @@ onUnmounted(() => {
 .hover-scale:hover {
     transform: translateY(-8px);
     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.20) !important;
+}
+
+.typing-cursor {
+    display: inline-block;
+    animation: blink 0.7s infinite;
+    opacity: 1;
+    font-weight: 300;
+    margin-left: 2px;
+}
+
+@keyframes blink {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0;
+    }
 }
 </style>
