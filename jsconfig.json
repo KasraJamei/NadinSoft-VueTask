@@ -5,10 +5,12 @@
     // استفاده از bundler برای سازگاری بهتر با Vite
     "moduleResolution": "bundler", 
     "allowJs": true,
-    // **۱. حل خطای JSON:** به کامپایلر اجازه می‌دهد فایل‌های .json را وارد کند.
+    // ۱. حل خطای JSON: به کامپایلر اجازه می‌دهد فایل‌های .json را وارد کند.
     "resolveJsonModule": true, 
     "esModuleInterop": true, 
-    // ۲. Alias @
+    // ۲. حل خطای رایج کتابخانه‌های بزرگ (مثل Vuetify)
+    "skipLibCheck": true, 
+    // ۳. Alias @
     "paths": {
       "@/*": ["./src/*"]
     }
