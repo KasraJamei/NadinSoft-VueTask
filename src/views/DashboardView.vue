@@ -18,8 +18,16 @@ const userName = computed(() => settingsStore.userName);
 const currentTheme = computed(() => settingsStore.currentTheme);
 const savedCity = computed(() => weatherStore.getSavedCity);
 
+// تابع مشترک برای تبدیل مقدار به متن نمایشی
+const getDisplayText = (value: string, map: { [key: string]: string }) => {
+    return map[value] || value.charAt(0).toUpperCase() + value.slice(1);
+};
 
-// --- Time and Greeting Logic (Unchanged) ---
+// نقشه‌های تبدیل
+const themeMap = { light: 'Light', dark: 'Dark' };
+const localeMap = { en: 'English', fa: 'فارسی' };
+
+// --- Time and Greeting Logic ---
 const currentTime = ref(new Date());
 let timer: number | undefined;
 
@@ -33,46 +41,28 @@ const formattedTime = computed(() => {
 
 const greeting = computed(() => {
     const hour = currentTime.value.getHours();
-
-    if (hour >= 5 && hour < 12) {
-        return t('Good Morning');
-    } else if (hour >= 12 && hour < 18) {
-        return t('Good Afternoon');
-    } else {
-        return t('Good Evening');
-    }
+    if (hour >= 5 && hour < 12) return t('Good Morning');
+    if (hour >= 12 && hour < 18) return t('Good Afternoon');
+    return t('Good Evening');
 });
-// -------------------------------------
 
-// --- Animation State ---
-// 💡 فقط برای تعداد وظایف باقی‌مانده
+// --- Animation for Pending Tasks ---
 const displayedPendingTasks = ref(0);
-const animationDuration = 1000; // 1 second animation
-
-// --- Animation Logic ---
+const animationDuration = 1000;
 let startTimes: Map<string, number> = new Map();
 let animationFrames: Map<string, number> = new Map();
 
-/**
- * Functon to animate a number from its current ref value to a target value.
- */
 function animateNumber(refToAnimate: Ref<number>, targetValue: number, key: string) {
-    if (animationFrames.has(key)) {
-        cancelAnimationFrame(animationFrames.get(key)!);
-    }
-
+    if (animationFrames.has(key)) cancelAnimationFrame(animationFrames.get(key)!);
     const startValue = refToAnimate.value;
     const startTime = performance.now();
     startTimes.set(key, startTime);
 
-    const step = (currentTime: number) => {
-        const elapsedTime = currentTime - startTimes.get(key)!;
-        const progress = Math.min(elapsedTime / animationDuration, 1);
-
-        const interpolatedValue = startValue + (targetValue - startValue) * progress;
-
-        refToAnimate.value = Math.floor(interpolatedValue);
-
+    const step = (now: number) => {
+        const elapsed = now - startTimes.get(key)!;
+        const progress = Math.min(elapsed / animationDuration, 1);
+        const interpolated = startValue + (targetValue - startValue) * progress;
+        refToAnimate.value = Math.floor(interpolated);
         if (progress < 1) {
             animationFrames.set(key, requestAnimationFrame(step));
         } else {
@@ -81,17 +71,14 @@ function animateNumber(refToAnimate: Ref<number>, targetValue: number, key: stri
             startTimes.delete(key);
         }
     };
-
     animationFrames.set(key, requestAnimationFrame(step));
 }
 
-watch(pendingTasksCount, (newValue) => {
-    animateNumber(displayedPendingTasks, newValue, 'pendingTasks');
+watch(pendingTasksCount, (newVal) => {
+    animateNumber(displayedPendingTasks, newVal, 'pendingTasks');
 }, { immediate: true });
-// -------------------------------------
 
-
-// --- Weather Logic for Dashboard ---
+// --- Weather Logic ---
 const dashboardWeather = ref<any>(null);
 const dashboardWeatherError = ref<string | null>(null);
 
@@ -106,13 +93,11 @@ const getDashboardWeatherMapping = (temp: number) => {
 async function fetchSavedCityWeather(city: CityData) {
     dashboardWeather.value = null;
     dashboardWeatherError.value = null;
-
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lng}&current_weather=true`;
-
     try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error('Failed to fetch weather data.');
-        const data = await response.json();
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('Failed to fetch weather');
+        const data = await res.json();
         dashboardWeather.value = data;
     } catch (err: any) {
         console.error('Dashboard Weather Error:', err);
@@ -126,32 +111,18 @@ const displayTemp = computed(() => {
         : '--';
 });
 
-// ✅ FIX 1: از تابع کمکی برای نام شهر استفاده کنید (برای ترجمه)
 const displayCityName = computed(() => {
     const city = savedCity.value;
     if (!city) return t('Unknown City');
-    // چک می‌کند که آیا لوکال فارسی است و نام فارسی در دسترس است یا نه.
     return locale.value === 'fa' && city.name_fa ? city.name_fa : city.city;
 });
 
-/** ✅ FIX 2: این متن را برای استفاده مستقیم در تمپلیت آماده می‌کنیم. */
 const displayWeatherStatusText = computed(() => {
     const temp = dashboardWeather.value?.current_weather?.temperature;
-    if (temp === undefined) {
-        return t('No Weather Status');
-    }
-    const statusText = getDashboardWeatherMapping(temp).text;
-    const cityName = displayCityName.value;
-
-    // 💡 ساختار مورد نظر شما: Mild در Mashhad
-    // از کلید ترجمه weather_in_city استفاده نمی‌کنیم و مستقیماً متن را می‌سازیم.
-    if (locale.value === 'fa') {
-        // مثلاً: "ملایم در مشهد"
-        return `${statusText} ${t('in')} ${cityName}`;
-    } else {
-        // مثلاً: "Mild in Mashhad"
-        return `${statusText} ${t('in')} ${cityName}`;
-    }
+    if (temp === undefined) return t('No Weather Status');
+    const status = getDashboardWeatherMapping(temp).text;
+    const city = displayCityName.value;
+    return `${status} ${t('in')} ${city}`;
 });
 
 const weatherIcon = computed(() => {
@@ -161,85 +132,60 @@ const weatherIcon = computed(() => {
 });
 
 const noCityMessage = computed(() => {
-    if (!savedCity.value) {
-        return t('Please set your default city in the Weather page.');
-    }
-    if (dashboardWeatherError.value) {
-        return t('Weather data unavailable. Tap for details.');
-    }
+    if (!savedCity.value) return t('Please set your default city in the Weather page.');
+    if (dashboardWeatherError.value) return t('Weather data unavailable. Tap for details.');
     return '';
 });
 
-watch(savedCity, (newCity) => {
-    if (newCity) {
-        fetchSavedCityWeather(newCity);
-    } else {
-        dashboardWeather.value = null;
-    }
+watch(savedCity, (city) => {
+    if (city) fetchSavedCityWeather(city);
+    else dashboardWeather.value = null;
 }, { immediate: true });
-// -------------------------------------
 
-
-// --- Typewriter Effect Logic (Unchanged) ---
+// --- Typewriter Effect ---
 const typedGreeting = ref('');
 const greetingText = computed(() => `${greeting.value}, ${userName.value}`);
-
 let typingTimeout: number | undefined;
 const isTypingComplete = ref(false);
 
-const startTyping = (textToType: string) => {
-    if (typingTimeout !== undefined) {
-        clearTimeout(typingTimeout);
-    }
+const startTyping = (text: string) => {
+    if (typingTimeout !== undefined) clearTimeout(typingTimeout);
     typedGreeting.value = '';
     isTypingComplete.value = false;
-    let charIndex = 0;
-
-    const typeChar = () => {
-        if (charIndex < textToType.length) {
-            typedGreeting.value += textToType.charAt(charIndex);
-            charIndex++;
-            typingTimeout = window.setTimeout(typeChar, 100);
+    let i = 0;
+    const type = () => {
+        if (i < text.length) {
+            typedGreeting.value += text.charAt(i);
+            i++;
+            typingTimeout = window.setTimeout(type, 100);
         } else {
             isTypingComplete.value = true;
         }
     };
-    typeChar();
+    type();
 };
 
 onMounted(() => {
-    timer = window.setInterval(() => {
-        currentTime.value = new Date();
-    }, 1000);
-
+    timer = window.setInterval(() => (currentTime.value = new Date()), 1000);
     startTyping(greetingText.value);
 });
 
-watch(greetingText, (newText) => {
-    startTyping(newText);
-});
+watch(greetingText, startTyping);
 
 onUnmounted(() => {
-    if (timer !== undefined) {
-        clearInterval(timer);
-    }
-    if (typingTimeout !== undefined) {
-        clearTimeout(typingTimeout);
-    }
-    animationFrames.forEach(frameId => cancelAnimationFrame(frameId));
+    if (timer !== undefined) clearInterval(timer);
+    if (typingTimeout !== undefined) clearTimeout(typingTimeout);
+    animationFrames.forEach(id => cancelAnimationFrame(id));
     animationFrames.clear();
 });
 
-const goToWeatherPage = () => {
-    router.push({ name: 'weather' });
-};
+const goToWeatherPage = () => router.push({ name: 'weather' });
 </script>
 
 <template>
     <v-container class="text-center">
-
         <v-row class="mt-4 justify-center">
-
+            <!-- Tasks Card -->
             <v-col cols="12" sm="4" md="4" lg="3">
                 <v-card elevation="8" class="pa-4 rounded-xl hover-scale transition-fast dashboard-card"
                     :color="currentTheme === 'light' ? 'light-blue-lighten-5' : 'surface'">
@@ -265,6 +211,7 @@ const goToWeatherPage = () => {
                 </v-card>
             </v-col>
 
+            <!-- Weather Card -->
             <v-col cols="12" sm="4" md="4" lg="3">
                 <v-card elevation="8" class="pa-4 rounded-xl hover-scale transition-fast dashboard-card"
                     :color="currentTheme === 'light' ? 'orange-lighten-5' : 'surface'">
@@ -275,7 +222,6 @@ const goToWeatherPage = () => {
                         {{ t('Weather Status') }}
                     </v-card-title>
                     <v-card-text class="pt-2">
-
                         <div v-if="!savedCity || dashboardWeatherError">
                             <p class="text-subtitle-1 font-weight-medium text-error mb-2">
                                 {{ savedCity ? t('No Weather Data') : t('No Default City Set') }}
@@ -284,7 +230,6 @@ const goToWeatherPage = () => {
                                 {{ noCityMessage }}
                             </p>
                         </div>
-
                         <div v-else>
                             <p class="text-h4 font-weight-black"
                                 :class="currentTheme === 'dark' ? 'text-orange-lighten-3' : 'orange-darken-2'">
@@ -305,6 +250,7 @@ const goToWeatherPage = () => {
                 </v-card>
             </v-col>
 
+            <!-- Settings Card -->
             <v-col cols="12" sm="4" md="4" lg="3">
                 <v-card elevation="8" class="pa-4 rounded-xl hover-scale transition-fast dashboard-card"
                     :color="currentTheme === 'light' ? 'green-lighten-5' : 'surface'">
@@ -314,13 +260,20 @@ const goToWeatherPage = () => {
                             class="mr-2">mdi-cog</v-icon>
                         {{ t('Settings') }}
                     </v-card-title>
+
                     <v-card-text class="pt-2">
+                        <!-- Language -->
                         <p class="text-h4 font-weight-black"
-                            :class="currentTheme === 'dark' ? 'text-green-lighten-3' : 'green-darken-2'">{{
-                                settingsStore.currentLocale.toUpperCase()
-                            }}</p>
-                        <p class="subtitle-2 text-medium-emphasis">{{ settingsStore.currentTheme }} {{ t('Theme') }}</p>
+                            :class="currentTheme === 'dark' ? 'text-green-lighten-3' : 'green-darken-2'">
+                            {{ getDisplayText(settingsStore.currentLocale, localeMap) }}
+                        </p>
+
+                        <!-- Theme -->
+                        <p class="subtitle-2 text-medium-emphasis">
+                            {{ getDisplayText(settingsStore.currentTheme, themeMap) }} {{ t('Theme') }}
+                        </p>
                     </v-card-text>
+
                     <v-card-actions class="justify-center">
                         <v-btn text :color="currentTheme === 'dark' ? 'green-lighten-3' : 'green-darken-2'"
                             variant="tonal" :to="{ name: 'profile' }" rounded="lg" size="small">
@@ -330,26 +283,21 @@ const goToWeatherPage = () => {
                     </v-card-actions>
                 </v-card>
             </v-col>
-
         </v-row>
 
         <div class="mb-8 mt-12">
-
             <p class="text-h5 text-md-h4 font-weight-black text-medium-emphasis mb-4">
                 {{ formattedTime }}
             </p>
-
             <p class="text-h3 text-md-h2 font-weight-medium primary--text">
                 {{ typedGreeting }}
                 <span v-if="!isTypingComplete" class="typing-cursor">|</span>
             </p>
         </div>
-
     </v-container>
 </template>
 
 <style scoped>
-/* 💡 FIX 1: Ensures all cards are the same height */
 .dashboard-card {
     min-height: 200px;
     display: flex;
@@ -357,12 +305,8 @@ const goToWeatherPage = () => {
     justify-content: space-between;
 }
 
-/* FIX 2: Ensures the content area of the card has a minimum height to maintain card uniformity */
 .v-card-text {
-    /* flex-grow: 1; */
-    /* این خط در صورت نیاز به رشد فضای میانی استفاده می‌شود */
     min-height: 70px;
-    /* تنظیم یک ارتفاع حداقلی برای فضای متن کارت‌ها */
     display: flex;
     flex-direction: column;
     justify-content: center;
