@@ -7,12 +7,9 @@ const notifyStore = useNotificationStore();
 const { notifications } = storeToRefs(notifyStore);
 
 // --- Configuration ---
-// Total time the notification should be visible before starting the exit transition.
-const NOTIFY_VISIBLE_DURATION = 3500; // 3.5 seconds visible time
+const NOTIFY_VISIBLE_DURATION = 3500;
+const activeTimeouts = new Map<number, number>();
 
-/**
- * Gets the style configuration (color, icon, gradient) for each notification type.
- */
 const getConfig = (type: string) => {
     const configs: Record<string, any> = {
         add: { color: '#4caf50', icon: 'mdi-plus-circle', bgGradient: 'to right, #4caf50, #66bb6a' },
@@ -30,21 +27,11 @@ const getConfig = (type: string) => {
     return configs[type] || configs.error;
 };
 
-// --- FIX: Implement automatic removal using setTimeout (The core fix for 'too fast') ---
-
-// We watch the list of notifications to set a timeout for any new ones.
-// Since we cannot use timeoutId in the store, we manage the state *within* the component
-// using a temporary Map to track the timeouts, keyed by notification ID.
-const activeTimeouts = new Map<number, number>();
-
-// Function to handle removal after timeout
 const removeNotification = (id: number) => {
-    // Clear timeout reference and remove from store
     activeTimeouts.delete(id);
     notifyStore.remove(id);
 };
 
-// Function to manually remove (on click)
 const removeManually = (id: number) => {
     const timeoutId = activeTimeouts.get(id);
     if (timeoutId) {
@@ -53,12 +40,9 @@ const removeManually = (id: number) => {
     removeNotification(id);
 };
 
-// Watch for changes in the list of notifications
 watch(notifications, (newNotifications) => {
-    // Get IDs of currently displayed notifications
     const newIds = new Set(newNotifications.map(n => n.id));
 
-    // 1. Clear timeouts for notifications that were manually dismissed or already removed
     activeTimeouts.forEach((timeoutId, id) => {
         if (!newIds.has(id)) {
             clearTimeout(timeoutId);
@@ -66,18 +50,14 @@ watch(notifications, (newNotifications) => {
         }
     });
 
-    // 2. Set timeouts for newly added notifications
     newNotifications.forEach(n => {
         if (!activeTimeouts.has(n.id)) {
-            // Set the timeout
             const timeoutId = window.setTimeout(() => {
-                // Ensure the element is still in the list before trying to remove (prevent race condition)
                 if (notifications.value.some(item => item.id === n.id)) {
                     removeNotification(n.id);
                 }
             }, NOTIFY_VISIBLE_DURATION);
 
-            // Store the timeout ID
             activeTimeouts.set(n.id, timeoutId);
         }
     });
@@ -106,16 +86,15 @@ watch(notifications, (newNotifications) => {
 </template>
 
 <style scoped>
-/* Container: Positioned fixed at the top right */
+/* FIX: Increased top value to 80px for more space below the App Bar */
 .notification-container {
     position: fixed;
-    top: 16px;
+    top: 80px;
     right: 16px;
     z-index: 10000;
     max-width: 420px;
 }
 
-/* Group: Ensures vertical stacking and spacing */
 .notify-group {
     display: flex;
     flex-direction: column;
@@ -128,8 +107,6 @@ watch(notifications, (newNotifications) => {
 }
 
 /* --- Vue Transition Classes --- */
-
-/* Entering animation (Slide in from right) */
 .notify-enter-active {
     transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
@@ -139,11 +116,8 @@ watch(notifications, (newNotifications) => {
     transform: translateX(100%);
 }
 
-/* 1. FIX: Removed Delay from CSS. Delay is now handled by setTimeout in JS. */
-/* 2. FIX: Removed position: absolute to prevent sticking and allow smooth vertical movement. */
 .notify-leave-active {
     transition: all 0.4s cubic-bezier(0.4, 0.0, 1.0, 1.0);
-    /* Note: position: absolute removed to allow notify-move to function correctly */
 }
 
 .notify-leave-to {
@@ -151,8 +125,6 @@ watch(notifications, (newNotifications) => {
     transform: translateX(100%);
 }
 
-/* FIX: Moving animation (Smoothly slides elements below up when an item is removed) */
-/* This prevents the "jumping" effect. */
 .notify-move {
     transition: transform 0.4s ease;
 }
