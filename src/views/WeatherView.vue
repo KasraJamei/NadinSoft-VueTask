@@ -3,15 +3,15 @@ import { ref, computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { CityData } from '@/stores/types';
 import { useWeatherStore } from '@/stores/weather';
+import { useNotificationStore } from '@/stores/notification';
 import citiesRawData from '@/data/iran-cities.json';
 
 const { t, locale } = useI18n();
 const weatherStore = useWeatherStore();
+const notify = useNotificationStore();
 
-/** CRITICAL FIX: Load the saved city from the store immediately on setup */
 const selectedCity = ref<CityData | null>(weatherStore.getSavedCity);
 
-const showSuccessSnackbar = ref(false);
 const weatherData = ref<any>(null);
 const isLoading = ref(false);
 const error = ref<string | null>(null);
@@ -37,9 +37,7 @@ async function fetchWeather(city: CityData) {
 
     try {
         const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error('Failed to fetch weather data.');
-        }
+        if (!response.ok) throw new Error('Failed to fetch weather data.');
         const data = await response.json();
         weatherData.value = data;
     } catch (err: any) {
@@ -50,20 +48,16 @@ async function fetchWeather(city: CityData) {
     }
 }
 
-/** Watcher runs immediately to fetch weather for the saved city on load. */
 watch(selectedCity, (newCity) => {
-    if (newCity) {
-        fetchWeather(newCity);
-    } else {
-        weatherData.value = null;
-    }
+    if (newCity) fetchWeather(newCity);
+    else weatherData.value = null;
 }, { immediate: true });
 
-/** Action to save the currently selected city and show a success message. */
 const saveCityToDashboard = () => {
     if (selectedCity.value) {
         weatherStore.saveWeatherCity(selectedCity.value);
-        showSuccessSnackbar.value = true; // Show the snackbar
+        const cityNameDisplay = locale.value === 'fa' && selectedCity.value.name_fa ? selectedCity.value.name_fa : selectedCity.value.city;
+        notify.saveCity(t('Default city saved: ') + cityNameDisplay);
     }
 };
 
@@ -82,9 +76,7 @@ const temperature = computed(() => {
 });
 
 const weatherDisplay = computed(() => {
-    if (temperature.value !== null) {
-        return getWeatherMapping(temperature.value);
-    }
+    if (temperature.value !== null) return getWeatherMapping(temperature.value);
     return { icon: 'mdi-cloud-question', text: t('Select City'), color: 'grey', gradient: 'to top right, #e0e0e0, #bdbdbd' };
 });
 
@@ -130,6 +122,7 @@ const windSpeed = computed(() => {
                 <v-icon start>mdi-content-save-outline</v-icon>
                 {{ t('Save as Default City') }}
             </v-btn>
+
             <v-alert v-if="isLoading" type="info" variant="tonal" class="mb-4 rounded-lg">
                 <v-progress-linear indeterminate color="info" class="mb-2"></v-progress-linear>
                 {{ t('Loading weather data...') }}
@@ -172,14 +165,8 @@ const windSpeed = computed(() => {
                         </v-chip>
                     </v-col>
                 </v-row>
-
             </v-card>
         </v-card>
-
-        <v-snackbar v-model="showSuccessSnackbar" :timeout="3000" color="success" location="bottom right" rounded="lg">
-            <v-icon start>mdi-check-circle-outline</v-icon>
-            {{ t('Default city saved successfully!') }}
-        </v-snackbar>
     </v-container>
 </template>
 

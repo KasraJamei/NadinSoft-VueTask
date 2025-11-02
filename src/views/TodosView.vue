@@ -3,11 +3,13 @@ import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useTodoStore } from '@/stores/todos';
 import { useSettingsStore } from '@/stores/settings';
+import { useNotificationStore } from '@/stores/notification';
 import type { TodoItem } from '@/stores/types';
 
 const { t } = useI18n();
 const todoStore = useTodoStore();
 const settingsStore = useSettingsStore();
+const notify = useNotificationStore();
 const newTodoText = ref('');
 
 // --- State for Editing Modal ---
@@ -18,11 +20,6 @@ const editDialog = ref(false);
 const deleteSingleDialog = ref(false);
 const deleteAllDialog = ref(false);
 const todoToDelete = ref<number | null>(null);
-
-// --- State for Snackbar Notification ---
-const showSnackbar = ref(false);
-const snackbarText = ref('');
-const snackbarColor = ref('error');
 
 // --- State for Filtering and Sorting ---
 const filterMode = ref('all');
@@ -49,22 +46,20 @@ const filteredTodos = computed(() => {
 
 // --- Todo Actions ---
 const handleAddTodo = () => {
-  const addedSuccessfully = todoStore.addTodo(newTodoText.value);
+  const trimmedText = newTodoText.value.trim();
+  if (!trimmedText) return;
+
+  const addedSuccessfully = todoStore.addTodo(trimmedText);
 
   if (addedSuccessfully) {
     newTodoText.value = '';
+    notify.addTodo(t('Task added: ') + trimmedText);
   } else {
-    const trimmedText = newTodoText.value.trim();
-    if (trimmedText) {
-      snackbarText.value = t('Task already exists: ') + trimmedText;
-      snackbarColor.value = 'warning';
-      showSnackbar.value = true;
-    }
+    notify.error(t('Task already exists: ') + trimmedText);
   }
 };
 
 const startEditing = (todo: TodoItem) => {
-  // یک کپی از وظیفه را برای ویرایش در Modal ذخیره می‌کنیم
   editingTodo.value = { ...todo };
   editDialog.value = true;
 };
@@ -74,30 +69,50 @@ const cancelEdit = () => {
   editDialog.value = false;
 };
 
-// 💡 تابع saveEdit (بدون تغییر از مرحله قبل)
 const saveEdit = () => {
   if (editingTodo.value) {
     const trimmedText = editingTodo.value.text.trim();
+    const initialIsDone = todoStore.todos.find(t => t.id === editingTodo.value!.id)?.isDone;
+    const newIsDone = editingTodo.value.isDone;
 
     if (!trimmedText) {
-      // اگر کاربر متن را پاک کرد، تأیید حذف را می‌خواهیم.
       confirmRemoveSingle(editingTodo.value.id);
       editDialog.value = false;
     } else {
       const success = todoStore.updateTodo(
         editingTodo.value.id,
         trimmedText,
-        editingTodo.value.isDone
+        newIsDone
       );
 
-      if (!success) {
-        snackbarText.value = t('Cannot save changes. A todo with that name already exists.');
-        snackbarColor.value = 'warning';
-        showSnackbar.value = true;
+      if (success) {
+        // FIX: Check if the completion status was changed to 'done' in the modal
+        if (!initialIsDone && newIsDone) {
+          notify.completeTodo(t('Task completed: ') + trimmedText);
+        } else {
+          notify.editTodo(t('Task updated: ') + trimmedText);
+        }
+        editDialog.value = false;
+      } else {
+        notify.error(t('Cannot save changes. A todo with that name already exists.'));
       }
-      editDialog.value = false;
     }
     editingTodo.value = null;
+  }
+};
+
+// FIX: Added function for notification on checkbox click.
+const toggleAndNotify = (id: number) => {
+  const todo = todoStore.todos.find(t => t.id === id);
+  if (!todo) return;
+
+  const wasDone = todo.isDone;
+  todoStore.toggleTodo(id);
+
+  if (wasDone) {
+    notify.reopenTodo(t('Task reopened: ') + todo.text);
+  } else {
+    notify.completeTodo(t('Task completed: ') + todo.text);
   }
 };
 
@@ -107,7 +122,7 @@ const filterOptions = computed(() => [
   { text: t('Completed'), value: 'completed', icon: 'mdi-check-all' },
 ]);
 
-// --- Confirmation Functions (بدون تغییر) ---
+// --- Confirmation Functions ---
 const confirmRemoveSingle = (id: number) => {
   todoToDelete.value = id;
   deleteSingleDialog.value = true;
@@ -115,7 +130,9 @@ const confirmRemoveSingle = (id: number) => {
 
 const executeRemoveSingle = () => {
   if (todoToDelete.value !== null) {
+    const text = todoStore.todos.find(t => t.id === todoToDelete.value)?.text || '';
     todoStore.removeTodo(todoToDelete.value);
+    notify.deleteTodo(t('Task deleted: ') + text);
   }
   deleteSingleDialog.value = false;
   todoToDelete.value = null;
@@ -129,10 +146,11 @@ const confirmRemoveAll = () => {
 
 const executeRemoveAll = () => {
   todoStore.clearAllTodos();
+  notify.deleteTodo(t('All tasks deleted'));
   deleteAllDialog.value = false;
 };
 
-// --- Helper for dynamic colors (بدون تغییر) ---
+// --- Helper for dynamic colors ---
 const getTodoItemColor = (isDone: boolean) => {
   if (settingsStore.currentTheme === 'dark') {
     return isDone ? 'green-darken-4' : 'blue-grey-darken-3';
@@ -180,7 +198,7 @@ const getAddButtonColor = () => {
       <v-row no-gutters class="mb-8 align-center">
         <v-col cols="12" sm="9" md="10" class="pr-sm-3">
           <v-text-field v-model="newTodoText" :label="t('todo_placeholder')" variant="solo-filled" density="compact"
-            hide-details clearable rounded="lg" @keyup.enter="handleAddTodo">
+            hide-details clearable rounded="lg" @keyup.enter="handleAddTodo" data-testid="todo-input">
             <template v-slot:append-inner>
               <v-icon size="small" color="medium-emphasis">mdi-keyboard-return</v-icon>
             </template>
@@ -188,7 +206,7 @@ const getAddButtonColor = () => {
         </v-col>
         <v-col cols="12" sm="3" md="2" class="d-flex justify-end mt-4 mt-sm-0">
           <v-btn :color="getAddButtonColor()" size="large" rounded="lg" block @click="handleAddTodo"
-            :disabled="!newTodoText.trim()" elevation="4">
+            :disabled="!newTodoText.trim()" elevation="4" data-testid="add-todo-btn">
             <v-icon start>mdi-plus-circle</v-icon>
             {{ t('Add') }}
           </v-btn>
@@ -199,13 +217,14 @@ const getAddButtonColor = () => {
         <v-col cols="12" sm="4" md="3">
           <v-select v-model="filterMode" :items="filterOptions" :label="t('Filter By')" item-title="text"
             item-value="value" density="compact" variant="outlined" rounded="lg" hide-details
-            prepend-inner-icon="mdi-filter-variant"></v-select>
+            prepend-inner-icon="mdi-filter-variant" />
         </v-col>
         <v-col cols="12" sm="4" md="3">
-          <v-select v-model="sortBy"
-            :items="[{ text: t('Creation Time'), value: 'createdAt' }, { text: t('Alphabetical'), value: 'text' }]"
-            :label="t('Sort By')" item-title="text" item-value="value" density="compact" variant="outlined" rounded="lg"
-            hide-details prepend-inner-icon="mdi-sort"></v-select>
+          <v-select v-model="sortBy" :items="[
+            { text: t('Creation Time'), value: 'createdAt' },
+            { text: t('Alphabetical'), value: 'text' }
+          ]" :label="t('Sort By')" item-title="text" item-value="value" density="compact" variant="outlined"
+            rounded="lg" hide-details prepend-inner-icon="mdi-sort" />
         </v-col>
         <v-col cols="12" sm="4" md="6" class="text-sm-end mt-4 mt-sm-0">
           <v-btn icon variant="text" @click="sortDesc = !sortDesc" :title="t('Toggle Sort Direction')" class="mr-2">
@@ -228,13 +247,14 @@ const getAddButtonColor = () => {
           :color="getTodoItemColor(todo.isDone)" :class="{ 'completed-item': todo.isDone }">
           <div class="d-flex align-center">
 
-            <v-checkbox-btn :model-value="todo.isDone" color="primary" @click.stop="todoStore.toggleTodo(todo.id)"
-              class="flex-shrink-0 mr-1"></v-checkbox-btn>
+            <v-checkbox-btn :model-value="todo.isDone" color="primary" @click.stop="toggleAndNotify(todo.id)"
+              class="flex-shrink-0 mr-1" />
 
             <div class="flex-grow-1 mx-3 py-1">
-              <p class="text-body-1 font-weight-medium"
-                :class="[getTodoTextColor(todo.isDone), { 'text-decoration-line-through text-medium-emphasis': todo.isDone }]"
-                @click="todoStore.toggleTodo(todo.id)" style="cursor: pointer;">
+              <p class="text-body-1 font-weight-medium" :class="[
+                getTodoTextColor(todo.isDone),
+                { 'text-decoration-line-through text-medium-emphasis': todo.isDone }
+              ]" @click="toggleAndNotify(todo.id)" style="cursor: pointer;">
                 {{ todo.text }}
               </p>
             </div>
@@ -248,14 +268,15 @@ const getAddButtonColor = () => {
               </v-chip>
 
               <v-btn icon variant="flat" size="small" :color="getEditButtonColor()" @click.stop="startEditing(todo)"
-                class="ml-2 mr-1">
+                :disabled="editingTodo?.id === todo.id" class="ml-2 mr-1" data-testid="edit-todo-btn">
                 <v-icon size="small">mdi-pencil</v-icon>
                 <v-tooltip activator="parent" location="top">{{ t('Edit') }}</v-tooltip>
               </v-btn>
 
               <v-btn icon variant="flat" size="small"
                 :color="settingsStore.currentTheme === 'dark' ? 'red-darken-4' : 'red-lighten-4'"
-                @click.stop="confirmRemoveSingle(todo.id)">
+                @click.stop="confirmRemoveSingle(todo.id)" :disabled="editingTodo?.id === todo.id"
+                data-testid="delete-todo-btn">
                 <v-icon size="small" color="error">mdi-delete-outline</v-icon>
                 <v-tooltip activator="parent" location="top">{{ t('Delete') }}</v-tooltip>
               </v-btn>
@@ -263,6 +284,7 @@ const getAddButtonColor = () => {
           </div>
         </v-card>
       </div>
+
       <v-alert v-if="todoStore.todos.length === 0" density="comfortable" type="info" variant="tonal"
         class="mt-6 rounded-lg" :icon="false">
         <div class="d-flex align-center">
@@ -288,7 +310,7 @@ const getAddButtonColor = () => {
         </v-card-title>
         <v-card-text>
           <v-text-field v-if="editingTodo" v-model="editingTodo.text" :label="t('Task Title')" variant="solo-filled"
-            hide-details autofocus rounded="lg" @keyup.enter="saveEdit" class="mt-4" />
+            hide-details autofocus rounded="lg" @keyup.enter="saveEdit" class="mt-4" data-testid="edit-todo-input" />
           <v-checkbox v-if="editingTodo" v-model="editingTodo.isDone" :label="t('Mark as Completed')" color="success"
             hide-details class="mt-4" />
         </v-card-text>
@@ -297,14 +319,16 @@ const getAddButtonColor = () => {
           <v-btn variant="text" @click="cancelEdit">
             {{ t('Cancel') }}
           </v-btn>
-          <v-btn color="success" variant="flat" @click="saveEdit" :disabled="!editingTodo?.text.trim()">
+          <v-btn color="success" variant="flat" @click="saveEdit" :disabled="!editingTodo?.text.trim()"
+            data-testid="save-edit-btn">
             <v-icon start>mdi-check</v-icon>
             {{ t('Save Changes') }}
           </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-dialog v-model="deleteSingleDialog" max-width="400" :persistent="false">
+
+    <v-dialog v-model="deleteSingleDialog" max-width="400">
       <v-card rounded="lg" class="pa-2">
         <v-card-title class="text-h6 d-flex align-center">
           <v-icon color="warning" class="mr-2">mdi-alert-circle-outline</v-icon>
@@ -317,7 +341,7 @@ const getAddButtonColor = () => {
           </div>
         </v-card-text>
         <v-card-actions>
-          <v-spacer></v-spacer>
+          <v-spacer />
           <v-btn variant="text" @click="deleteSingleDialog = false">
             {{ t('Cancel') }}
           </v-btn>
@@ -328,7 +352,7 @@ const getAddButtonColor = () => {
       </v-card>
     </v-dialog>
 
-    <v-dialog v-model="deleteAllDialog" max-width="400" :persistent="false">
+    <v-dialog v-model="deleteAllDialog" max-width="400">
       <v-card rounded="lg" class="pa-2">
         <v-card-title class="text-h6 d-flex align-center">
           <v-icon color="error" class="mr-2">mdi-delete-sweep-outline</v-icon>
@@ -342,7 +366,7 @@ const getAddButtonColor = () => {
           </div>
         </v-card-text>
         <v-card-actions>
-          <v-spacer></v-spacer>
+          <v-spacer />
           <v-btn variant="text" @click="deleteAllDialog = false">
             {{ t('Cancel') }}
           </v-btn>
@@ -352,21 +376,10 @@ const getAddButtonColor = () => {
         </v-card-actions>
       </v-card>
     </v-dialog>
-
-    <v-snackbar v-model="showSnackbar" :timeout="4000" :color="snackbarColor" location="bottom right" rounded="lg">
-      {{ snackbarText }}
-      <template v-slot:actions>
-        <v-btn variant="text" @click="showSnackbar = false">
-          {{ t('Close') }}
-        </v-btn>
-      </template>
-    </v-snackbar>
-
   </v-container>
 </template>
 
 <style scoped>
-/* (Styles remain unchanged) */
 .todo-list-container {
   padding-top: 8px;
   padding-bottom: 8px;

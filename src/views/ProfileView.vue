@@ -3,24 +3,28 @@ import { ref, watch, onMounted, computed } from 'vue';
 import { useSettingsStore } from '@/stores/settings';
 import { useI18n } from 'vue-i18n';
 import { useTheme } from 'vuetify';
+import { useNotificationStore } from '@/stores/notification';
 
 const { t } = useI18n();
 const settingsStore = useSettingsStore();
 const theme = useTheme();
+const notify = useNotificationStore();
 
 // --- Local refs ---
 const newUserName = ref(settingsStore.userName);
 const newLocale = ref(settingsStore.currentLocale);
 const newTheme = ref(settingsStore.currentTheme);
 
-// --- برای دکمه Save فقط نام ---
+// --- For Save button (name only) ---
 const isNameChanged = ref(false);
 const showSaveButton = computed(() => isNameChanged.value && newUserName.value.trim() !== settingsStore.userName);
 
 function saveName() {
     if (!newUserName.value.trim()) return;
-    settingsStore.updateName(newUserName.value.trim());
+    const trimmedName = newUserName.value.trim();
+    settingsStore.updateName(trimmedName);
     isNameChanged.value = false;
+    notify.updateName(t('Name updated to: ') + trimmedName);
 }
 
 // --- Sync store → local refs ---
@@ -32,13 +36,23 @@ watch(() => settingsStore.currentLocale, (v) => (newLocale.value = v));
 watch(() => settingsStore.currentTheme, (v) => (newTheme.value = v));
 
 // --- Save instantly for locale & theme ---
-watch(newLocale, (val) => settingsStore.updateLocale(val));
+watch(newLocale, (val) => {
+    settingsStore.updateLocale(val);
+    notify.changeLocale(t('Language changed to: ') + (val === 'fa' ? 'فارسی' : 'English'));
+});
+
+// FIX: Corrected theme notification message.
 watch(newTheme, (val) => {
     settingsStore.updateTheme(val);
     theme.global.name.value = val;
+    const isLight = val === 'light';
+    // FIX: Send the translated string 'msg' instead of the boolean 'isLight' or the full message.
+    const msg = isLight ? t('Light') : t('Dark');
+    // The notification store should handle the prepended text, but we send the full text as per original structure
+    notify.changeTheme(isLight, t('Theme changed to: ') + msg);
 });
 
-// --- تشخیص تغییر نام ---
+// --- Detect name change ---
 watch(newUserName, (val) => {
     isNameChanged.value = val.trim() !== settingsStore.userName;
 });
@@ -68,7 +82,6 @@ watch(() => settingsStore.currentLocale, formatMemberSince);
 
 <template>
     <v-container fluid class="pa-4">
-        <!-- Header -->
         <v-row justify="center" class="mb-6">
             <v-col cols="12" class="text-center">
                 <h1 class="text-h5 font-weight-bold primary--text d-flex align-center justify-center">
@@ -78,7 +91,6 @@ watch(() => settingsStore.currentLocale, formatMemberSince);
             </v-col>
         </v-row>
 
-        <!-- Main Card -->
         <v-row justify="center">
             <v-col cols="12">
                 <v-card elevation="12" class="pa-4 pa-sm-6 rounded-xl mx-auto"
@@ -91,14 +103,12 @@ watch(() => settingsStore.currentLocale, formatMemberSince);
 
                     <v-card-text class="px-0">
                         <v-row dense>
-                            <!-- Name Field + Animated Save Button -->
                             <v-col cols="12">
                                 <div class="d-flex align-center gap-2">
                                     <v-text-field v-model="newUserName" :label="t('Name')" variant="solo-filled"
                                         hide-details rounded prepend-inner-icon="mdi-account"
                                         class="flex-grow-1 mb-3" />
 
-                                    <!-- Animated Save Button -->
                                     <transition name="save-btn">
                                         <v-btn v-show="showSaveButton" color="primary" size="large" @click="saveName"
                                             class="mb-3 save-btn" elevation="4">
@@ -109,27 +119,24 @@ watch(() => settingsStore.currentLocale, formatMemberSince);
                                 </div>
                             </v-col>
 
-                            <!-- Language Select -->
                             <v-col cols="12" sm="6">
                                 <v-select v-model="newLocale" :items="[
                                     { value: 'en', title: 'English' },
                                     { value: 'fa', title: 'فارسی' }
-                                ]" :label="t('Language')" item-title="title" item-value="value" variant="solo-filled" hide-details
-                                    rounded prepend-inner-icon="mdi-web" class="mb-3" />
+                                ]" :label="t('Language')" item-title="title" item-value="value" variant="solo-filled"
+                                    hide-details rounded prepend-inner-icon="mdi-web" class="mb-3" />
                             </v-col>
 
-                            <!-- Theme Select -->
                             <v-col cols="12" sm="6">
                                 <v-select v-model="newTheme" :items="[
                                     { value: 'light', title: 'Light' },
                                     { value: 'dark', title: 'Dark' }
-                                ]" :label="t('Theme')" item-title="title" item-value="value" variant="solo-filled" hide-details
-                                    rounded
+                                ]" :label="t('Theme')" item-title="title" item-value="value" variant="solo-filled"
+                                    hide-details rounded
                                     :prepend-inner-icon="newTheme === 'light' ? 'mdi-brightness-7' : 'mdi-brightness-4'"
                                     class="mb-3" />
                             </v-col>
 
-                            <!-- Member Since -->
                             <v-col cols="12" class="mt-4">
                                 <div class="text-subtitle-1 font-weight-bold mb-2">
                                     {{ t('Member Since') }}:
@@ -152,7 +159,7 @@ watch(() => settingsStore.currentLocale, formatMemberSince);
     gap: 8px;
 }
 
-/* انیمیشن دکمه Save */
+/* Save button animation */
 .save-btn-enter-active,
 .save-btn-leave-active {
     transition: all 0.3s ease;
