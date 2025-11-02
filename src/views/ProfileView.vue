@@ -1,50 +1,68 @@
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue';
+import { ref, watch, onMounted, computed } from 'vue';
 import { useSettingsStore } from '@/stores/settings';
 import { useI18n } from 'vue-i18n';
 import { useTheme } from 'vuetify';
 
-// --- Shared display function ---
-const getDisplayText = (value: string, map: { [key: string]: string }) => {
-    return map[value] || value.charAt(0).toUpperCase() + value.slice(1);
-};
-const themeMap = { light: 'Light', dark: 'Dark' };
-
-// --- Stores & i18n ---
 const { t } = useI18n();
 const settingsStore = useSettingsStore();
 const theme = useTheme();
 
-// --- Local refs (always editable) ---
+// --- Local refs ---
 const newUserName = ref(settingsStore.userName);
 const newLocale = ref(settingsStore.currentLocale);
 const newTheme = ref(settingsStore.currentTheme);
 
+// --- برای دکمه Save فقط نام ---
+const isNameChanged = ref(false);
+const showSaveButton = computed(() => isNameChanged.value && newUserName.value.trim() !== settingsStore.userName);
+
+function saveName() {
+    if (!newUserName.value.trim()) return;
+    settingsStore.updateName(newUserName.value.trim());
+    isNameChanged.value = false;
+}
+
 // --- Sync store → local refs ---
-watch(() => settingsStore.userName, (v) => (newUserName.value = v));
+watch(() => settingsStore.userName, (v) => {
+    newUserName.value = v;
+    isNameChanged.value = false;
+});
 watch(() => settingsStore.currentLocale, (v) => (newLocale.value = v));
 watch(() => settingsStore.currentTheme, (v) => (newTheme.value = v));
 
-// --- Save instantly ---
-watch(newUserName, (val) => settingsStore.updateName(val));
+// --- Save instantly for locale & theme ---
 watch(newLocale, (val) => settingsStore.updateLocale(val));
 watch(newTheme, (val) => {
     settingsStore.updateTheme(val);
     theme.global.name.value = val;
 });
 
-// --- Member Since (formatted) ---
+// --- تشخیص تغییر نام ---
+watch(newUserName, (val) => {
+    isNameChanged.value = val.trim() !== settingsStore.userName;
+});
+
+// --- Member Since ---
 const memberSinceFormatted = ref('');
 
 function formatMemberSince() {
+    if (!settingsStore.memberSince) {
+        memberSinceFormatted.value = t('Not set yet');
+        return;
+    }
+
     const date = new Date(settingsStore.memberSince);
-    memberSinceFormatted.value = date.toLocaleDateString(
-        settingsStore.currentLocale === 'fa' ? 'fa-IR' : 'en-US',
-        { year: 'numeric', month: '2-digit', day: '2-digit' }
-    );
+    const locale = settingsStore.currentLocale === 'fa' ? 'fa-IR' : 'en-US';
+
+    const dateStr = date.toLocaleDateString(locale, { year: 'numeric', month: '2-digit', day: '2-digit' });
+    const timeStr = date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', hour12: false });
+
+    memberSinceFormatted.value = `${dateStr}, ${timeStr}`;
 }
 
 onMounted(formatMemberSince);
+watch(() => settingsStore.memberSince, formatMemberSince);
 watch(() => settingsStore.currentLocale, formatMemberSince);
 </script>
 
@@ -73,10 +91,22 @@ watch(() => settingsStore.currentLocale, formatMemberSince);
 
                     <v-card-text class="px-0">
                         <v-row dense>
-                            <!-- Name Field -->
+                            <!-- Name Field + Animated Save Button -->
                             <v-col cols="12">
-                                <v-text-field v-model="newUserName" :label="t('Name')" variant="solo-filled"
-                                    hide-details rounded prepend-inner-icon="mdi-account" class="mb-3"></v-text-field>
+                                <div class="d-flex align-center gap-2">
+                                    <v-text-field v-model="newUserName" :label="t('Name')" variant="solo-filled"
+                                        hide-details rounded prepend-inner-icon="mdi-account"
+                                        class="flex-grow-1 mb-3" />
+
+                                    <!-- Animated Save Button -->
+                                    <transition name="save-btn">
+                                        <v-btn v-show="showSaveButton" color="primary" size="large" @click="saveName"
+                                            class="mb-3 save-btn" elevation="4">
+                                            {{ t('Save') }}
+                                            <v-icon end>mdi-content-save</v-icon>
+                                        </v-btn>
+                                    </transition>
+                                </div>
                             </v-col>
 
                             <!-- Language Select -->
@@ -84,19 +114,19 @@ watch(() => settingsStore.currentLocale, formatMemberSince);
                                 <v-select v-model="newLocale" :items="[
                                     { value: 'en', title: 'English' },
                                     { value: 'fa', title: 'فارسی' }
-                                ]" :label="t('Language')" item-title="title" item-value="value" variant="solo-filled"
-                                    hide-details rounded prepend-inner-icon="mdi-web" class="mb-3"></v-select>
+                                ]" :label="t('Language')" item-title="title" item-value="value" variant="solo-filled" hide-details
+                                    rounded prepend-inner-icon="mdi-web" class="mb-3" />
                             </v-col>
 
                             <!-- Theme Select -->
                             <v-col cols="12" sm="6">
                                 <v-select v-model="newTheme" :items="[
-                                    { value: 'light', title: getDisplayText('light', themeMap) },
-                                    { value: 'dark', title: getDisplayText('dark', themeMap) }
-                                ]" :label="t('Theme')" item-title="title" item-value="value" variant="solo-filled"
-                                    hide-details rounded
+                                    { value: 'light', title: 'Light' },
+                                    { value: 'dark', title: 'Dark' }
+                                ]" :label="t('Theme')" item-title="title" item-value="value" variant="solo-filled" hide-details
+                                    rounded
                                     :prepend-inner-icon="newTheme === 'light' ? 'mdi-brightness-7' : 'mdi-brightness-4'"
-                                    class="mb-3"></v-select>
+                                    class="mb-3" />
                             </v-col>
 
                             <!-- Member Since -->
@@ -105,7 +135,7 @@ watch(() => settingsStore.currentLocale, formatMemberSince);
                                     {{ t('Member Since') }}:
                                 </div>
                                 <v-chip color="secondary" label size="large" class="px-4">
-                                    <v-icon start>mdi-calendar</v-icon>
+                                    <v-icon start>mdi-calendar-clock</v-icon>
                                     {{ memberSinceFormatted }}
                                 </v-chip>
                             </v-col>
@@ -118,7 +148,28 @@ watch(() => settingsStore.currentLocale, formatMemberSince);
 </template>
 
 <style scoped>
-/* Optional: Add subtle animation on mobile */
+.gap-2 {
+    gap: 8px;
+}
+
+/* انیمیشن دکمه Save */
+.save-btn-enter-active,
+.save-btn-leave-active {
+    transition: all 0.3s ease;
+}
+
+.save-btn-enter-from,
+.save-btn-leave-to {
+    opacity: 0;
+    transform: translateX(-20px);
+}
+
+.save-btn-enter-to,
+.save-btn-leave-from {
+    opacity: 1;
+    transform: translateX(0);
+}
+
 @media (max-width: 600px) {
     .v-card {
         margin-left: 8px !important;
