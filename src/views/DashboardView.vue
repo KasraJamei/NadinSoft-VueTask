@@ -70,23 +70,17 @@ const startTyping = (text: string) => {
 onMounted(() => {
     timer = window.setInterval(() => (currentTime.value = new Date()), 1000);
 
-    if (userName.value && userName.value !== 'User' && userName.value.trim() !== '') {
+    if (userName.value?.trim() && userName.value !== 'User') {
         startTyping(greetingText.value);
     }
 
     const handleWelcome = () => {
-        if (!isTypingComplete.value && userName.value && userName.value.trim() !== '') {
+        if (!isTypingComplete.value && userName.value?.trim()) {
             startTyping(greetingText.value);
         }
     };
 
     window.addEventListener('welcome-animation-complete', handleWelcome);
-
-    onUnmounted(() => {
-        window.removeEventListener('welcome-animation-complete', handleWelcome);
-        if (timer !== undefined) clearInterval(timer);
-        if (typingTimeout !== undefined) clearTimeout(typingTimeout);
-    });
 });
 
 // --- بقیه کدها بدون تغییر ---

@@ -3,7 +3,6 @@ import { ref, computed, watch } from 'vue';
 import { useSettingsStore } from '@/stores/settings';
 import { useI18n } from 'vue-i18n';
 import { useTheme, useLocale } from 'vuetify';
-import { useRouter, RouterView } from 'vue-router';
 
 import TheAppBar from '@/components/TheAppBar.vue';
 import TheSidebar from '@/components/TheSidebar.vue';
@@ -40,11 +39,7 @@ function toggleDrawer() {
     <v-layout :dir="isRtl ? 'rtl' : 'ltr'">
       <TheAppBar @toggle-drawer="toggleDrawer" />
       <TheSidebar v-model:drawer="drawer" />
-
-      <!-- همیشه FirstVisitModal در DOM باشه -->
       <FirstVisitModal />
-
-      <!-- محتوا همیشه نمایش داده بشه (مودال خودش مدیریت میکنه) -->
       <v-main>
         <v-container fluid class="pa-4 pa-sm-6" style="min-height: 100vh;">
           <RouterView />

@@ -9,7 +9,6 @@ const settingsStore = useSettingsStore();
 const showModal = ref(false);
 const userName = ref('');
 const showWelcome = ref(false);
-const welcomeKey = ref(0);
 
 onMounted(() => {
     if (!settingsStore.userName || settingsStore.userName === 'User' || settingsStore.userName.trim() === '') {
@@ -18,26 +17,19 @@ onMounted(() => {
 });
 
 async function saveName() {
-    if (userName.value.trim()) {
-        settingsStore.updateName(userName.value.trim());
-        showModal.value = false;
-        await nextTick();
+    if (!userName.value.trim()) return;
 
-        // Force re-render
-        welcomeKey.value++;
-        showWelcome.value = true;
+    settingsStore.updateName(userName.value.trim());
+    showModal.value = false;
+    await nextTick();
 
-        // صبر کن تا DOM کامل رندر بشه
-        await nextTick();
+    showWelcome.value = true;
+    await nextTick();
 
-        // شروع انیمیشن با requestAnimationFrame
-        requestAnimationFrame(() => {
-            setTimeout(() => {
-                showWelcome.value = false;
-                window.dispatchEvent(new CustomEvent('welcome-animation-complete'));
-            }, 3500);
-        });
-    }
+    setTimeout(() => {
+        showWelcome.value = false;
+        window.dispatchEvent(new CustomEvent('welcome-animation-complete'));
+    }, 3500);
 }
 
 function onEnter(e: KeyboardEvent) {
@@ -46,7 +38,7 @@ function onEnter(e: KeyboardEvent) {
 </script>
 
 <template>
-    <!-- 1. Name Input -->
+    <!-- Name Input -->
     <teleport to="body">
         <div v-if="showModal" class="modal-backdrop">
             <v-card class="modal-card mx-auto pa-6 pa-md-8 rounded-xl" max-width="460" elevation="24">
@@ -61,8 +53,7 @@ function onEnter(e: KeyboardEvent) {
                 </div>
 
                 <v-text-field v-model="userName" :label="t('Your Name')" variant="solo" hide-details rounded
-                    prepend-inner-icon="mdi-account" autofocus class="mb-5 elegant-input" density="comfortable"
-                    @keyup="onEnter"></v-text-field>
+                    prepend-inner-icon="mdi-account" autofocus class="mb-5" density="comfortable" @keyup="onEnter" />
 
                 <v-btn color="primary" size="x-large" block rounded :disabled="!userName.trim()" @click="saveName"
                     class="text-uppercase font-weight-bold" elevation="6">
@@ -72,20 +63,19 @@ function onEnter(e: KeyboardEvent) {
             </v-card>
         </div>
     </teleport>
-
-    <!-- 2. Welcome Animation -->
+    <!-- Welcome Animation -->
     <teleport to="body">
-        <div v-if="showWelcome" :key="welcomeKey" class="welcome-backdrop">
+        <div v-if="showWelcome" class="welcome-backdrop">
             <div class="welcome-content">
                 <h1 class="welcome-title">
-                    <span class="wave" v-for="(l, i) in 'Welcome,'.split('')" :key="'w' + i" :style="{ '--i': i }">{{ l
-                        }}</span>
+                    <span v-for="(l, i) in 'Welcome,'.split('')" :key="i" class="wave" :style="{ '--i': i }">{{ l
+                    }}</span>
                     &nbsp;
                     <span class="name-pop">{{ userName }}!</span>
                 </h1>
 
                 <div class="fireworks">
-                    <div class="firework" v-for="n in 8" :key="n" :style="{ '--n': n }"></div>
+                    <div v-for="n in 8" :key="n" class="firework" :style="{ '--n': n }" />
                 </div>
             </div>
         </div>
@@ -95,35 +85,30 @@ function onEnter(e: KeyboardEvent) {
 <style scoped>
 .modal-backdrop {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
+    inset: 0;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     display: flex;
     align-items: center;
     justify-content: center;
-    backdrop-filter: blur(10px);
     z-index: 3000;
 }
 
 .modal-card {
     background: rgba(255, 255, 255, 0.95) !important;
-    backdrop-filter: blur(12px);
     max-width: 460px;
     width: 90%;
 }
 
-.elegant-input :deep(.v-field--focused) {
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+@media (max-width: 600px) {
+    .modal-card {
+        margin: 16px;
+        width: calc(100% - 32px);
+    }
 }
 
 .welcome-backdrop {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
+    inset: 0;
     background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
     display: flex;
     align-items: center;
@@ -147,12 +132,6 @@ function onEnter(e: KeyboardEvent) {
 @media (max-width: 600px) {
     .welcome-title {
         font-size: 2.6rem;
-    }
-
-    .modal-card {
-        margin: 16px;
-        max-width: none !important;
-        width: calc(100% - 32px);
     }
 }
 
@@ -199,10 +178,7 @@ function onEnter(e: KeyboardEvent) {
 
 .fireworks {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     pointer-events: none;
 }
 
@@ -269,8 +245,7 @@ function onEnter(e: KeyboardEvent) {
 .firework::after {
     content: '';
     position: absolute;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     background: var(--color);
     border-radius: 50%;
     animation: explode 2.8s ease-out forwards;
