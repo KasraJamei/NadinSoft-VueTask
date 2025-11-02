@@ -6,10 +6,10 @@ import type { UserSettings, Theme, Locale } from './types';
 const STORAGE_KEY = 'userSettings';
 
 const DEFAULT_SETTINGS: UserSettings = {
-    name: '',                     // ← empty → modal will show
+    name: '',
     theme: 'light',
     locale: 'en',
-    memberSince: new Date().toISOString(),
+    memberSince: '', // فقط اولین بار ست میشه
 };
 
 function loadSettings(): UserSettings {
@@ -17,9 +17,6 @@ function loadSettings(): UserSettings {
     if (stored) {
         try {
             const parsed = JSON.parse(stored) as UserSettings;
-            if (!parsed.memberSince) {
-                parsed.memberSince = new Date().toISOString();
-            }
             return parsed;
         } catch (e) {
             console.error('Error loading user settings:', e);
@@ -42,7 +39,13 @@ export const useSettingsStore = defineStore('settings', () => {
 
     // ───────────────────── ACTIONS ─────────────────────
     function updateName(newName: string) {
-        settings.value.name = newName;
+        const trimmed = newName.trim();
+        settings.value.name = trimmed;
+
+        // فقط اولین بار که نام وارد شد → memberSince ثبت کن
+        if (trimmed && !settings.value.memberSince) {
+            settings.value.memberSince = new Date().toISOString();
+        }
     }
 
     function updateTheme(newTheme: Theme) {
@@ -51,7 +54,7 @@ export const useSettingsStore = defineStore('settings', () => {
 
     function updateLocale(newLocale: Locale) {
         settings.value.locale = newLocale;
-        i18nLocale.value = newLocale; // sync vue-i18n
+        i18nLocale.value = newLocale;
     }
 
     function toggleTheme() {
