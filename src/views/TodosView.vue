@@ -229,7 +229,7 @@ const getAddButtonColor = () => {
           <div class="d-flex align-center">
 
             <v-checkbox-btn :model-value="todo.isDone" color="primary" @click.stop="todoStore.toggleTodo(todo.id)"
-              class="flex-shrink-0 mr-1" :disabled="!!editingTodo"></v-checkbox-btn>
+              class="flex-shrink-0 mr-1"></v-checkbox-btn>
 
             <div class="flex-grow-1 mx-3 py-1">
               <p class="text-body-1 font-weight-medium"
@@ -248,14 +248,14 @@ const getAddButtonColor = () => {
               </v-chip>
 
               <v-btn icon variant="flat" size="small" :color="getEditButtonColor()" @click.stop="startEditing(todo)"
-                :disabled="!!editingTodo" class="ml-2 mr-1">
+                class="ml-2 mr-1">
                 <v-icon size="small">mdi-pencil</v-icon>
                 <v-tooltip activator="parent" location="top">{{ t('Edit') }}</v-tooltip>
               </v-btn>
 
               <v-btn icon variant="flat" size="small"
                 :color="settingsStore.currentTheme === 'dark' ? 'red-darken-4' : 'red-lighten-4'"
-                @click.stop="confirmRemoveSingle(todo.id)" :disabled="!!editingTodo">
+                @click.stop="confirmRemoveSingle(todo.id)">
                 <v-icon size="small" color="error">mdi-delete-outline</v-icon>
                 <v-tooltip activator="parent" location="top">{{ t('Delete') }}</v-tooltip>
               </v-btn>
@@ -280,7 +280,7 @@ const getAddButtonColor = () => {
       </v-alert>
     </v-card>
 
-    <v-dialog v-model="editDialog" max-width="500" persistent>
+    <v-dialog v-model="editDialog" max-width="500">
       <v-card rounded="lg" class="pa-4">
         <v-card-title class="text-h5 font-weight-bold d-flex align-center">
           <v-icon color="amber" class="mr-2">mdi-pencil-box-multiple-outline</v-icon>
@@ -288,12 +288,12 @@ const getAddButtonColor = () => {
         </v-card-title>
         <v-card-text>
           <v-text-field v-if="editingTodo" v-model="editingTodo.text" :label="t('Task Title')" variant="solo-filled"
-            hide-details autofocus rounded="lg" @keyup.enter="saveEdit" class="mt-4"></v-text-field>
+            hide-details autofocus rounded="lg" @keyup.enter="saveEdit" class="mt-4" />
           <v-checkbox v-if="editingTodo" v-model="editingTodo.isDone" :label="t('Mark as Completed')" color="success"
-            hide-details class="mt-4"></v-checkbox>
+            hide-details class="mt-4" />
         </v-card-text>
         <v-card-actions class="pt-0">
-          <v-spacer></v-spacer>
+          <v-spacer />
           <v-btn variant="text" @click="cancelEdit">
             {{ t('Cancel') }}
           </v-btn>
