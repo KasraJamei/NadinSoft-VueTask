@@ -7,6 +7,7 @@ import { useTheme, useLocale } from 'vuetify';
 import TheAppBar from '@/components/TheAppBar.vue';
 import TheSidebar from '@/components/TheSidebar.vue';
 import FirstVisitModal from '@/components/FirstVisitModal.vue';
+import NotificationSystem from '@/components/NotificationSystem.vue';
 
 const settingsStore = useSettingsStore();
 const { locale } = useI18n();
@@ -45,6 +46,9 @@ function toggleDrawer() {
           <RouterView />
         </v-container>
       </v-main>
+
+      <!-- سیستم نوتیفیکیشن -->
+      <NotificationSystem />
     </v-layout>
   </v-app>
 </template>
