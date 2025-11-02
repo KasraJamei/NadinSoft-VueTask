@@ -199,7 +199,7 @@ const startTyping = (textToType: string) => {
         if (charIndex < textToType.length) {
             typedGreeting.value += textToType.charAt(charIndex);
             charIndex++;
-            typingTimeout = window.setTimeout(typeChar, 50);
+            typingTimeout = window.setTimeout(typeChar, 100);
         } else {
             isTypingComplete.value = true;
         }
