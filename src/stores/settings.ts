@@ -6,7 +6,7 @@ import type { UserSettings, Theme, Locale } from './types';
 const STORAGE_KEY = 'userSettings';
 
 const DEFAULT_SETTINGS: UserSettings = {
-    name: 'User',
+    name: '',                     // ← empty → modal will show
     theme: 'light',
     locale: 'en',
     memberSince: new Date().toISOString(),
@@ -17,7 +17,6 @@ function loadSettings(): UserSettings {
     if (stored) {
         try {
             const parsed = JSON.parse(stored) as UserSettings;
-            // Add memberSince for older entries
             if (!parsed.memberSince) {
                 parsed.memberSince = new Date().toISOString();
             }
@@ -52,7 +51,7 @@ export const useSettingsStore = defineStore('settings', () => {
 
     function updateLocale(newLocale: Locale) {
         settings.value.locale = newLocale;
-        i18nLocale.value = newLocale;          // sync vue-i18n
+        i18nLocale.value = newLocale; // sync vue-i18n
     }
 
     function toggleTheme() {
