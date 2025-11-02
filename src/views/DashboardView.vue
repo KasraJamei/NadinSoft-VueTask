@@ -39,9 +39,11 @@ const formattedTime = computed(() => {
 
 const greeting = computed(() => {
     const hour = currentTime.value.getHours();
+
     if (hour >= 5 && hour < 12) return t('Good Morning');
     if (hour >= 12 && hour < 18) return t('Good Afternoon');
-    return t('Good Evening');
+    if (hour >= 18 && hour < 22) return t('Good Evening');
+    return t('Good Night');
 });
 
 // --- Typewriter ---
