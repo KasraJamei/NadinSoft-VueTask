@@ -3,11 +3,10 @@ import { computed } from 'vue';
 import { useSettingsStore } from '@/stores/settings';
 import { useI18n as useI18nGlobal } from 'vue-i18n';
 import { RouterLink } from 'vue-router';
-import { useNotificationStore } from '@/stores/notification';
+// Removed useNotificationStore as it is no longer responsible for sending theme notifications
 
 const { t } = useI18nGlobal();
 const settingsStore = useSettingsStore();
-const notify = useNotificationStore();
 
 const emit = defineEmits<{
     (e: 'toggle-drawer'): void
@@ -16,14 +15,9 @@ const emit = defineEmits<{
 const currentThemeIsLight = computed(() => settingsStore.currentTheme === 'light');
 
 const handleThemeToggle = () => {
-    const wasLight = settingsStore.currentTheme === 'light';
-
-    // Call the original toggle function from the store
+    // Only toggle the theme in the store. 
+    // The notification logic is handled by the watcher in ProfileView.vue or a central place.
     settingsStore.toggleTheme();
-
-    // Send the notification
-    const msg = t('Theme changed to: ') + (wasLight ? t('Dark') : t('Light'));
-    notify.changeTheme(!wasLight, msg);
 };
 </script>
 
@@ -41,7 +35,7 @@ const handleThemeToggle = () => {
 
         <div class="app-bar-title">
             <RouterLink to="/" class="text-decoration-none text-white font-weight-bold">
-                APP BAR
+                {{ t('APP BAR') }}
             </RouterLink>
         </div>
 
