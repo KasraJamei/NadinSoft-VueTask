@@ -165,19 +165,6 @@ const displayCityName = computed(() => {
     return city.city;
 });
 
-const displayWeatherStatusText = computed(() => {
-    const temp = dashboardWeather.value?.current_weather?.temperature;
-    if (temp === undefined) return `${t('alert.loading_weather')}...`;
-    const status = getDashboardWeatherMapping(temp).text;
-    const city = displayCityName.value;
-
-    // This returns the full string "Status Preposition City" for both LTR and RTL for template fallback
-    if (isRtl.value) {
-        return `${status} ${t('weather.in_preposition')} ${city}`;
-    }
-    return `${status} ${t('in')} ${city}`;
-});
-
 const weatherIcon = computed(() => {
     const temp = dashboardWeather.value?.current_weather?.temperature;
     if (temp === undefined || !savedCity.value) return 'mdi-cloud-question';
@@ -199,14 +186,11 @@ const goToWeatherPage = () => router.push({ name: 'weather' });
 
 const finalGreetingText = computed(() => typedGreeting.value);
 
-// Helper to reliably separate the greeting (RTL) and the name (LTR) for correct wrapping
 const getGreetingParts = (text: string, isRtl: boolean) => {
     if (!isRtl) return { rtlPart: text, ltrPart: '' };
 
     // The i18n key structure is "عبارت فارسی، {name}"
-    // Match[1] = RTL Text (e.g., "عصر بخیر")
-    // Match[2] = LTR Name (e.g., "Kasra")
-    const match = text.match(/(.*),\s*(.*)$/);
+    const match = text.match(/(.*)[\s،]*(.*)$/); // Adjusted regex for flexibility
 
     if (match && match[2]) {
         // FIX: Put the comma with the LTR part for better alignment and remove extra spaces.
@@ -216,23 +200,27 @@ const getGreetingParts = (text: string, isRtl: boolean) => {
         return { rtlPart: rtlText, ltrPart: ltrTextWithComma };
     }
 
-    // Fallback logic
     return { rtlPart: text.trim(), ltrPart: '' };
 };
 </script>
 
 <template>
-    <v-container class="text-center">
-        <v-row class="mt-4 justify-center">
+    <v-container>
+        <v-row class="mt-4 justify-center align-stretch">
+
             <v-col cols="12" sm="4" md="4" lg="3">
                 <v-card elevation="8" class="pa-4 rounded-xl hover-scale dashboard-card"
                     :color="currentTheme === 'light' ? 'light-blue-lighten-5' : 'surface'">
-                    <v-card-title class="text-h6 font-weight-bold justify-center"
-                        :class="currentTheme === 'dark' ? 'text-blue-lighten-3' : 'primary--text'">
-                        <v-icon left
+
+                    <v-card-title class="text-h6 font-weight-bold d-flex align-center" :class="[
+                        currentTheme === 'dark' ? 'text-blue-lighten-3' : 'primary--text',
+                        isRtl ? 'justify-end' : 'justify-start' // Aligns content to the start/end of the card
+                    ]">
+                        <v-icon size="large" :class="isRtl ? 'ml-2' : 'mr-2'"
                             :color="currentTheme === 'dark' ? 'blue-lighten-3' : 'primary'">mdi-format-list-checks</v-icon>
-                        {{ t('todos') }}
+                        {{ t('nav_todos') }}
                     </v-card-title>
+
                     <v-card-text class="pt-2">
                         <p class="text-h4 font-weight-black"
                             :class="currentTheme === 'dark' ? 'text-blue-lighten-3' : 'primary--text'">
@@ -242,11 +230,12 @@ const getGreetingParts = (text: string, isRtl: boolean) => {
                             {{ t('todo.tasks_remaining') }}
                         </p>
                     </v-card-text>
+
                     <v-card-actions class="justify-center">
                         <v-btn :to="{ name: 'todos' }" rounded="lg" size="small" variant="tonal"
                             :color="currentTheme === 'dark' ? 'blue-lighten-3' : 'primary'">
-                            <v-icon start>mdi-arrow-right-circle</v-icon>
                             {{ t('nav_todos') }}
+                            <v-icon :class="isRtl ? 'mr-1' : 'ml-1'">mdi-arrow-right-circle</v-icon>
                         </v-btn>
                     </v-card-actions>
                 </v-card>
@@ -255,12 +244,17 @@ const getGreetingParts = (text: string, isRtl: boolean) => {
             <v-col cols="12" sm="4" md="4" lg="3">
                 <v-card elevation="8" class="pa-4 rounded-xl hover-scale dashboard-card"
                     :color="currentTheme === 'light' ? 'orange-lighten-5' : 'surface'">
-                    <v-card-title class="text-h6 font-weight-bold justify-center"
-                        :class="currentTheme === 'dark' ? 'text-orange-lighten-3' : 'orange-darken-2'">
-                        <v-icon left :color="currentTheme === 'dark' ? 'orange-lighten-3' : 'orange-darken-2'">{{
-                            weatherIcon }}</v-icon>
+
+                    <v-card-title class="text-h6 font-weight-bold d-flex align-center" :class="[
+                        currentTheme === 'dark' ? 'text-orange-lighten-3' : 'orange-darken-2',
+                        isRtl ? 'justify-end' : 'justify-start'
+                    ]">
+                        <v-icon size="large" :class="isRtl ? 'ml-2' : 'mr-2'"
+                            :color="currentTheme === 'dark' ? 'orange-lighten-3' : 'orange-darken-2'">{{
+                                weatherIcon }}</v-icon>
                         {{ t('nav_weather') }}
                     </v-card-title>
+
                     <v-card-text class="pt-2">
                         <div v-if="!savedCity || dashboardWeatherError">
                             <p class="text-subtitle-1 font-weight-medium text-error mb-2">
@@ -273,29 +267,21 @@ const getGreetingParts = (text: string, isRtl: boolean) => {
                                 :class="currentTheme === 'dark' ? 'text-orange-lighten-3' : 'orange-darken-2'">
                                 {{ displayTemp }}
                             </p>
-                            <p class="subtitle-2 text-medium-emphasis">
-                                <span v-if="isRtl" class="d-inline-flex" style="direction: rtl;">
-                                    <span dir="rtl" class="d-inline-block">
-                                        {{
-                                            getDashboardWeatherMapping(dashboardWeather?.current_weather?.temperature)?.text
-                                        }}
-                                        {{ t('weather.in_preposition') }}&nbsp;
-                                    </span>
-                                    <span dir="ltr" class="d-inline-block">
-                                        {{ displayCityName }}
-                                    </span>
-                                </span>
-                                <span v-else>
-                                    {{ displayWeatherStatusText }}
-                                </span>
+                            <p class="subtitle-2 text-medium-emphasis text-center">
+                                <span :dir="isRtl ? 'rtl' : 'ltr'">
+                                    {{ getDashboardWeatherMapping(dashboardWeather?.current_weather?.temperature)?.text
+                                    }}
+                                    {{ isRtl ? t('weather.in_preposition') : t('in') }}
+                                    <span dir="ltr">{{ displayCityName }}</span> </span>
                             </p>
                         </div>
                     </v-card-text>
+
                     <v-card-actions class="justify-center">
                         <v-btn @click="goToWeatherPage" rounded="lg" size="small" variant="tonal"
                             :color="currentTheme === 'dark' ? 'orange-lighten-3' : 'orange-darken-2'">
                             {{ savedCity ? t('nav_weather') : t('button.save_default_city') }}
-                            <v-icon class="ml-2">mdi-arrow-right-circle</v-icon>
+                            <v-icon :class="isRtl ? 'mr-1' : 'ml-1'">mdi-arrow-right-circle</v-icon>
                         </v-btn>
                     </v-card-actions>
                 </v-card>
@@ -304,12 +290,16 @@ const getGreetingParts = (text: string, isRtl: boolean) => {
             <v-col cols="12" sm="4" md="4" lg="3">
                 <v-card elevation="8" class="pa-4 rounded-xl hover-scale dashboard-card"
                     :color="currentTheme === 'light' ? 'green-lighten-5' : 'surface'">
-                    <v-card-title class="text-h6 font-weight-bold justify-center"
-                        :class="currentTheme === 'dark' ? 'text-green-lighten-3' : 'green-darken-2'">
-                        <v-icon left
+
+                    <v-card-title class="text-h6 font-weight-bold d-flex align-center" :class="[
+                        currentTheme === 'dark' ? 'text-green-lighten-3' : 'green-darken-2',
+                        isRtl ? 'justify-end' : 'justify-start'
+                    ]">
+                        <v-icon size="large" :class="isRtl ? 'ml-2' : 'mr-2'"
                             :color="currentTheme === 'dark' ? 'green-lighten-3' : 'green-darken-2'">mdi-cog</v-icon>
                         {{ t('nav_profile') }}
                     </v-card-title>
+
                     <v-card-text class="pt-2">
                         <p class="text-h4 font-weight-black"
                             :class="currentTheme === 'dark' ? 'text-green-lighten-3' : 'green-darken-2'">
@@ -319,25 +309,26 @@ const getGreetingParts = (text: string, isRtl: boolean) => {
                             {{ t('theme') }} {{ getDisplayText(settingsStore.currentTheme, themeMap) }}
                         </p>
                     </v-card-text>
+
                     <v-card-actions class="justify-center">
                         <v-btn :to="{ name: 'profile' }" rounded="lg" size="small" variant="tonal"
                             :color="currentTheme === 'dark' ? 'green-lighten-3' : 'green-darken-2'">
-                            <v-icon start>mdi-arrow-right-circle</v-icon>
                             {{ t('nav_profile') }}
+                            <v-icon :class="isRtl ? 'mr-1' : 'ml-1'">mdi-arrow-right-circle</v-icon>
                         </v-btn>
                     </v-card-actions>
                 </v-card>
             </v-col>
         </v-row>
 
-        <div class="mb-8 mt-12">
+        <div class="mb-8 mt-12 text-center">
             <p class="text-h5 text-md-h4 font-weight-black text-medium-emphasis mb-4">
                 {{ formattedTime }}
             </p>
             <p class="text-h3 text-md-h2 font-weight-medium primary--text">
-                <span v-if="isRtl" class="d-inline-flex" style="direction: rtl;">
+                <span v-if="isRtl" class="d-inline-flex justify-center" style="direction: rtl;">
                     <span dir="rtl" class="d-inline-block">
-                        {{ getGreetingParts(finalGreetingText, isRtl).rtlPart }}&nbsp;
+                        {{ getGreetingParts(finalGreetingText, isRtl).rtlPart }}
                     </span>
                     <span dir="ltr" class="d-inline-block">
                         {{ getGreetingParts(finalGreetingText, isRtl).ltrPart }}
@@ -346,19 +337,19 @@ const getGreetingParts = (text: string, isRtl: boolean) => {
                 <span v-else>
                     {{ typedGreeting }}
                 </span>
-                <span v-if="!isTypingComplete" class="typing-cursor">|</span>
+                <span v-if="!isTypingComplete" class="typing-cursor" :class="{ 'rtl-cursor': isRtl }">|</span>
             </p>
         </div>
     </v-container>
 </template>
 
 <style scoped>
-/* Styles remain the same */
 .dashboard-card {
     min-height: 200px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    text-align: initial;
 }
 
 .v-card-text {
@@ -366,6 +357,12 @@ const getGreetingParts = (text: string, isRtl: boolean) => {
     display: flex;
     flex-direction: column;
     justify-content: center;
+    align-items: center;
+}
+
+.v-card-text p {
+    width: 100%;
+    text-align: center;
 }
 
 .hover-scale {
@@ -383,6 +380,12 @@ const getGreetingParts = (text: string, isRtl: boolean) => {
     opacity: 1;
     font-weight: 300;
     margin-left: 2px;
+}
+
+/* FIX: Adjust cursor margin in RTL */
+.typing-cursor.rtl-cursor {
+    margin-right: 2px;
+    margin-left: 0;
 }
 
 @keyframes blink {
