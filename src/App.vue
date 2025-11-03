@@ -2,7 +2,7 @@
 import { ref, computed, watch } from 'vue';
 import { useSettingsStore } from '@/stores/settings';
 import { useI18n } from 'vue-i18n';
-import { useTheme, useLocale } from 'vuetify';
+import { useTheme } from 'vuetify';
 
 import TheAppBar from '@/components/TheAppBar.vue';
 import TheSidebar from '@/components/TheSidebar.vue';
@@ -12,14 +12,13 @@ import NotificationSystem from '@/components/NotificationSystem.vue';
 const settingsStore = useSettingsStore();
 const { locale } = useI18n();
 const vuetifyTheme = useTheme();
-const vuetifyLocale = useLocale();
 
 const drawer = ref(true);
 const isRtl = computed(() => settingsStore.currentLocale === 'fa');
 
 watch(() => settingsStore.currentLocale, (l) => {
+  // Update the i18n locale which in turn updates Vuetify locale
   locale.value = l;
-  vuetifyLocale.current.value = l;
 }, { immediate: true });
 
 watch(() => settingsStore.currentTheme, (t) => {
@@ -27,6 +26,7 @@ watch(() => settingsStore.currentTheme, (t) => {
 }, { immediate: true });
 
 watch(isRtl, (rtl) => {
+  // Set global text direction for RTL/LTR support
   document.documentElement.dir = rtl ? 'rtl' : 'ltr';
 }, { immediate: true });
 
@@ -37,7 +37,7 @@ function toggleDrawer() {
 
 <template>
   <v-app>
-    <v-layout :dir="isRtl ? 'rtl' : 'ltr'">
+    <v-layout>
       <TheAppBar @toggle-drawer="toggleDrawer" />
       <TheSidebar v-model:drawer="drawer" />
       <FirstVisitModal />
@@ -47,13 +47,13 @@ function toggleDrawer() {
         </v-container>
       </v-main>
 
-      <!-- سیستم نوتیفیکیشن -->
       <NotificationSystem />
     </v-layout>
   </v-app>
 </template>
 
 <style>
+/* Ensure vertical scroll is always visible */
 html {
   overflow-y: scroll !important;
 }

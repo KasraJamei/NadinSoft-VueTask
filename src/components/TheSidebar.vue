@@ -4,22 +4,19 @@ import { useSettingsStore } from '@/stores/settings';
 import { useI18n as useI18nGlobal } from 'vue-i18n';
 import { useTheme } from 'vuetify';
 
-// Define the prop for v-model (for drawer open/close state)
-// Note: In Vue 3.4+, 'defineModel' is the preferred way for v-model.
 const drawerModel = defineModel<boolean>('drawer', { required: true });
 
-// Destructuring t for translation
 const { t } = useI18nGlobal();
 const vuetifyTheme = useTheme();
 
 const settingsStore = useSettingsStore();
 
-// Navigation items logic (moved here from App.vue)
+// Map navigation titles to i18n keys
 const navItems = computed(() => [
-    { title: t('Dashboard'), icon: 'mdi-view-dashboard', to: { name: 'dashboard' } },
-    { title: t('Tasks'), icon: 'mdi-format-list-checks', to: { name: 'todos' } },
-    { title: t('Weather'), icon: 'mdi-weather-sunny-alert', to: { name: 'weather' } },
-    { title: t('Profile'), icon: 'mdi-account-circle', to: { name: 'profile' } },
+    { title: t('nav_dashboard'), icon: 'mdi-view-dashboard', to: { name: 'dashboard' } },
+    { title: t('nav_todos'), icon: 'mdi-format-list-checks', to: { name: 'todos' } },
+    { title: t('nav_weather'), icon: 'mdi-weather-sunny-alert', to: { name: 'weather' } },
+    { title: t('nav_profile'), icon: 'mdi-account-circle', to: { name: 'profile' } },
 ]);
 
 const isLightTheme = computed(() => vuetifyTheme.global.name.value === 'light');

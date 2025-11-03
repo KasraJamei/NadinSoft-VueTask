@@ -38,17 +38,16 @@ watch(() => settingsStore.currentTheme, (v) => (newTheme.value = v));
 // --- Save instantly for locale & theme ---
 watch(newLocale, (val) => {
     settingsStore.updateLocale(val);
-    notify.changeLocale(t('Language changed to: ') + (val === 'fa' ? 'فارسی' : 'English'));
+    const localeName = t(val === 'fa' ? 'farsi' : 'english');
+    notify.changeLocale(t('Language changed to: ') + localeName);
 });
 
-// FIX: Corrected theme notification message.
+// Corrected theme notification message.
 watch(newTheme, (val) => {
     settingsStore.updateTheme(val);
     theme.global.name.value = val;
     const isLight = val === 'light';
-    // FIX: Send the translated string 'msg' instead of the boolean 'isLight' or the full message.
     const msg = isLight ? t('Light') : t('Dark');
-    // The notification store should handle the prepended text, but we send the full text as per original structure
     notify.changeTheme(isLight, t('Theme changed to: ') + msg);
 });
 
@@ -67,6 +66,7 @@ function formatMemberSince() {
     }
 
     const date = new Date(settingsStore.memberSince);
+    // Use correct locale for date formatting (fa-IR for 'fa' locale)
     const locale = settingsStore.currentLocale === 'fa' ? 'fa-IR' : 'en-US';
 
     const dateStr = date.toLocaleDateString(locale, { year: 'numeric', month: '2-digit', day: '2-digit' });
@@ -121,16 +121,17 @@ watch(() => settingsStore.currentLocale, formatMemberSince);
 
                             <v-col cols="12" sm="6">
                                 <v-select v-model="newLocale" :items="[
-                                    { value: 'en', title: 'English' },
-                                    { value: 'fa', title: 'فارسی' }
-                                ]" :label="t('Language')" item-title="title" item-value="value" variant="solo-filled"
-                                    hide-details rounded prepend-inner-icon="mdi-web" class="mb-3" />
+                                    { value: 'en', title: t('english') },
+                                    { value: 'fa', title: t('farsi') }
+                                ]" :label="t('Language')" item-title="title" item-value="value"
+                                    variant="solo-filled" hide-details rounded prepend-inner-icon="mdi-web"
+                                    class="mb-3" />
                             </v-col>
 
                             <v-col cols="12" sm="6">
                                 <v-select v-model="newTheme" :items="[
-                                    { value: 'light', title: 'Light' },
-                                    { value: 'dark', title: 'Dark' }
+                                    { value: 'light', title: t('light') },
+                                    { value: 'dark', title: t('dark') }
                                 ]" :label="t('Theme')" item-title="title" item-value="value" variant="solo-filled"
                                     hide-details rounded
                                     :prepend-inner-icon="newTheme === 'light' ? 'mdi-brightness-7' : 'mdi-brightness-4'"

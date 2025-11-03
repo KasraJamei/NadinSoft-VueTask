@@ -21,8 +21,9 @@ const handleThemeToggle = () => {
     // Call the original toggle function from the store
     settingsStore.toggleTheme();
 
-    // Send the notification
-    const msg = t('Theme changed to: ') + (wasLight ? t('Dark') : t('Light'));
+    // Send the notification using translated text
+    const themeName = wasLight ? t('Dark') : t('Light');
+    const msg = t('Theme changed to: ') + themeName;
     notify.changeTheme(!wasLight, msg);
 };
 </script>
@@ -41,7 +42,7 @@ const handleThemeToggle = () => {
 
         <div class="app-bar-title">
             <RouterLink to="/" class="text-decoration-none text-white font-weight-bold">
-                APP BAR
+                {{ t('dashboard') }}
             </RouterLink>
         </div>
 

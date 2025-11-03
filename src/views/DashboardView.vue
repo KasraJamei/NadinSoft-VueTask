@@ -10,8 +10,10 @@ import { useRouter } from 'vue-router';
 const todoStore = useTodoStore();
 const settingsStore = useSettingsStore();
 const weatherStore = useWeatherStore();
-const { t, locale } = useI18n();
+const { t, locale } = useI18n(); // locale is a Ref<string>
 const router = useRouter();
+
+const isRtl = computed(() => locale.value === 'fa');
 
 const pendingTasksCount = computed(() => todoStore.todos.filter(t => !t.isDone).length);
 const userName = computed(() => settingsStore.userName);
@@ -22,15 +24,14 @@ const getDisplayText = (value: string, map: { [key: string]: string }) => {
     return map[value] || value.charAt(0).toUpperCase() + value.slice(1);
 };
 
-const themeMap = { light: 'Light', dark: 'Dark' };
-const localeMap = { en: 'English', fa: 'فارسی' };
+const themeMap = { light: t('light'), dark: t('dark') };
+const localeMap = { en: t('english'), fa: t('farsi') };
 
-// --- Time ---
 const currentTime = ref(new Date());
 let timer: number | undefined;
 
 const formattedTime = computed(() => {
-    return currentTime.value.toLocaleTimeString('en-US', {
+    return currentTime.value.toLocaleTimeString(locale.value, {
         hour: '2-digit',
         minute: '2-digit',
         hour12: false
@@ -39,16 +40,16 @@ const formattedTime = computed(() => {
 
 const greeting = computed(() => {
     const hour = currentTime.value.getHours();
+    const name = userName.value || 'User';
 
-    if (hour >= 5 && hour < 12) return t('Good Morning');
-    if (hour >= 12 && hour < 18) return t('Good Afternoon');
-    if (hour >= 18 && hour < 22) return t('Good Evening');
-    return t('Good Night');
+    if (hour >= 5 && hour < 12) return t('good_morning', { name });
+    if (hour >= 12 && hour < 18) return t('good_afternoon', { name });
+    if (hour >= 18 && hour < 22) return t('good_evening', { name });
+    return t('welcome', { name });
 });
 
-// --- Typewriter ---
 const typedGreeting = ref('');
-const greetingText = computed(() => `${greeting.value}, ${userName.value}`);
+const greetingText = computed(() => greeting.value);
 let typingTimeout: number | undefined;
 const isTypingComplete = ref(false);
 
@@ -85,7 +86,17 @@ onMounted(() => {
     window.addEventListener('welcome-animation-complete', handleWelcome);
 });
 
-// --- بقیه کدها بدون تغییر ---
+onUnmounted(() => {
+    if (timer) clearInterval(timer);
+    if (typingTimeout) clearTimeout(typingTimeout);
+});
+
+watch(greetingText, (newVal, oldVal) => {
+    if (newVal !== oldVal) {
+        startTyping(newVal);
+    }
+});
+
 const displayedPendingTasks = ref(0);
 const animationDuration = 1000;
 let startTimes = new Map<string, number>();
@@ -117,16 +128,15 @@ watch(pendingTasksCount, (newVal) => {
     animateNumber(displayedPendingTasks, newVal, 'pendingTasks');
 }, { immediate: true });
 
-// --- Weather ---
 const dashboardWeather = ref<any>(null);
 const dashboardWeatherError = ref<string | null>(null);
 
 const getDashboardWeatherMapping = (temp: number) => {
-    if (temp > 30) return { text: t('Very Hot'), icon: 'mdi-weather-sunny' };
-    if (temp > 20) return { text: t('Warm'), icon: 'mdi-weather-partly-cloudy' };
-    if (temp > 10) return { text: t('Mild'), icon: 'mdi-weather-cloudy' };
-    if (temp > 0) return { text: t('Cool & Rainy'), icon: 'mdi-weather-rainy' };
-    return { text: t('Cold'), icon: 'mdi-weather-snowy' };
+    if (temp > 30) return { text: t('weather.status_very_hot'), icon: 'mdi-weather-sunny' };
+    if (temp > 20) return { text: t('weather.status_warm'), icon: 'mdi-weather-partly-cloudy' };
+    if (temp > 10) return { text: t('weather.status_mild'), icon: 'mdi-weather-cloudy' };
+    if (temp > 0) return { text: t('weather.status_cool_rainy'), icon: 'mdi-weather-rainy' };
+    return { text: t('weather.status_cold'), icon: 'mdi-weather-snowy' };
 };
 
 async function fetchSavedCityWeather(city: CityData) {
@@ -139,7 +149,7 @@ async function fetchSavedCityWeather(city: CityData) {
         const data = await res.json();
         dashboardWeather.value = data;
     } catch (err) {
-        dashboardWeatherError.value = t('N/A');
+        dashboardWeatherError.value = t('alert.error_fetching_weather');
     }
 }
 
@@ -151,15 +161,22 @@ const displayTemp = computed(() => {
 
 const displayCityName = computed(() => {
     const city = savedCity.value;
-    if (!city) return t('Unknown City');
-    return locale.value === 'fa' && city.name_fa ? city.name_fa : city.city;
+    if (!city) return t('weather.status_select_city');
+    return city.city;
 });
 
 const displayWeatherStatusText = computed(() => {
     const temp = dashboardWeather.value?.current_weather?.temperature;
-    if (temp === undefined) return t('No Weather Status');
+    if (temp === undefined) return `${t('alert.loading_weather')}...`;
     const status = getDashboardWeatherMapping(temp).text;
     const city = displayCityName.value;
+
+    // FIX: Reverse order and use LTR span for city name in Farsi mode 
+    if (isRtl.value) {
+        // Output: [Status] [در] [Tehran]
+        return `${status} ${t('weather.in_preposition')} ${city}`;
+    }
+
     return `${status} ${t('in')} ${city}`;
 });
 
@@ -170,8 +187,8 @@ const weatherIcon = computed(() => {
 });
 
 const noCityMessage = computed(() => {
-    if (!savedCity.value) return t('Please set your default city in the Weather page.');
-    if (dashboardWeatherError.value) return t('Weather data unavailable. Tap for details.');
+    if (!savedCity.value) return t('alert.select_city_prompt');
+    if (dashboardWeatherError.value) return `${t('alert.error_fetching_weather')}. ${t('nav_weather')}.`;
     return '';
 });
 
@@ -181,12 +198,16 @@ watch(savedCity, (city) => {
 }, { immediate: true });
 
 const goToWeatherPage = () => router.push({ name: 'weather' });
+
+// Computes the final greeting string with correct punctuation and LTR/RTL flow
+const finalGreetingText = computed(() => {
+    return typedGreeting.value;
+});
 </script>
 
 <template>
     <v-container class="text-center">
         <v-row class="mt-4 justify-center">
-            <!-- Tasks -->
             <v-col cols="12" sm="4" md="4" lg="3">
                 <v-card elevation="8" class="pa-4 rounded-xl hover-scale dashboard-card"
                     :color="currentTheme === 'light' ? 'light-blue-lighten-5' : 'surface'">
@@ -194,25 +215,27 @@ const goToWeatherPage = () => router.push({ name: 'weather' });
                         :class="currentTheme === 'dark' ? 'text-blue-lighten-3' : 'primary--text'">
                         <v-icon left
                             :color="currentTheme === 'dark' ? 'blue-lighten-3' : 'primary'">mdi-format-list-checks</v-icon>
-                        {{ t('Remaining Tasks') }}
+                        {{ t('todos') }}
                     </v-card-title>
                     <v-card-text class="pt-2">
                         <p class="text-h4 font-weight-black"
                             :class="currentTheme === 'dark' ? 'text-blue-lighten-3' : 'primary--text'">
                             {{ displayedPendingTasks }}
                         </p>
+                        <p class="subtitle-2 text-medium-emphasis">
+                            {{ t('todo.tasks_shown') }}
+                        </p>
                     </v-card-text>
                     <v-card-actions class="justify-center">
                         <v-btn :to="{ name: 'todos' }" rounded="lg" size="small" variant="tonal"
                             :color="currentTheme === 'dark' ? 'blue-lighten-3' : 'primary'">
                             <v-icon start>mdi-arrow-right-circle</v-icon>
-                            {{ t('View Tasks') }}
+                            {{ t('nav_todos') }}
                         </v-btn>
                     </v-card-actions>
                 </v-card>
             </v-col>
 
-            <!-- Weather -->
             <v-col cols="12" sm="4" md="4" lg="3">
                 <v-card elevation="8" class="pa-4 rounded-xl hover-scale dashboard-card"
                     :color="currentTheme === 'light' ? 'orange-lighten-5' : 'surface'">
@@ -220,12 +243,12 @@ const goToWeatherPage = () => router.push({ name: 'weather' });
                         :class="currentTheme === 'dark' ? 'text-orange-lighten-3' : 'orange-darken-2'">
                         <v-icon left :color="currentTheme === 'dark' ? 'orange-lighten-3' : 'orange-darken-2'">{{
                             weatherIcon }}</v-icon>
-                        {{ t('Weather Status') }}
+                        {{ t('nav_weather') }}
                     </v-card-title>
                     <v-card-text class="pt-2">
                         <div v-if="!savedCity || dashboardWeatherError">
                             <p class="text-subtitle-1 font-weight-medium text-error mb-2">
-                                {{ savedCity ? t('No Weather Data') : t('No Default City Set') }}
+                                {{ savedCity ? t('alert.error_fetching_weather') : t('weather.status_select_city') }}
                             </p>
                             <p class="text-caption text-medium-emphasis">{{ noCityMessage }}</p>
                         </div>
@@ -234,20 +257,31 @@ const goToWeatherPage = () => router.push({ name: 'weather' });
                                 :class="currentTheme === 'dark' ? 'text-orange-lighten-3' : 'orange-darken-2'">
                                 {{ displayTemp }}
                             </p>
-                            <p class="subtitle-2 text-medium-emphasis">{{ displayWeatherStatusText }}</p>
+                            <p class="subtitle-2 text-medium-emphasis">
+                                <span v-if="isRtl" style="direction: rtl;">
+                                    <span v-for="(part, index) in displayWeatherStatusText.split(' ')" :key="index">
+                                        <span v-if="index === displayWeatherStatusText.split(' ').length - 1" dir="ltr">
+                                            {{ part }}
+                                        </span>
+                                        <span v-else>{{ part }} </span>
+                                    </span>
+                                </span>
+                                <span v-else>
+                                    {{ displayWeatherStatusText }}
+                                </span>
+                            </p>
                         </div>
                     </v-card-text>
                     <v-card-actions class="justify-center">
                         <v-btn @click="goToWeatherPage" rounded="lg" size="small" variant="tonal"
                             :color="currentTheme === 'dark' ? 'orange-lighten-3' : 'orange-darken-2'">
-                            <v-icon start>mdi-arrow-right-circle</v-icon>
-                            {{ savedCity ? t('Weather Details') : t('Set Default City') }}
+                            {{ savedCity ? t('nav_weather') : t('button.save_default_city') }}
+                            <v-icon class="ml-2">mdi-arrow-right-circle</v-icon>
                         </v-btn>
                     </v-card-actions>
                 </v-card>
             </v-col>
 
-            <!-- Settings -->
             <v-col cols="12" sm="4" md="4" lg="3">
                 <v-card elevation="8" class="pa-4 rounded-xl hover-scale dashboard-card"
                     :color="currentTheme === 'light' ? 'green-lighten-5' : 'surface'">
@@ -255,7 +289,7 @@ const goToWeatherPage = () => router.push({ name: 'weather' });
                         :class="currentTheme === 'dark' ? 'text-green-lighten-3' : 'green-darken-2'">
                         <v-icon left
                             :color="currentTheme === 'dark' ? 'green-lighten-3' : 'green-darken-2'">mdi-cog</v-icon>
-                        {{ t('Settings') }}
+                        {{ t('nav_profile') }}
                     </v-card-title>
                     <v-card-text class="pt-2">
                         <p class="text-h4 font-weight-black"
@@ -263,14 +297,14 @@ const goToWeatherPage = () => router.push({ name: 'weather' });
                             {{ getDisplayText(settingsStore.currentLocale, localeMap) }}
                         </p>
                         <p class="subtitle-2 text-medium-emphasis">
-                            {{ getDisplayText(settingsStore.currentTheme, themeMap) }} {{ t('Theme') }}
+                            {{ t('theme') }} {{ getDisplayText(settingsStore.currentTheme, themeMap) }}
                         </p>
                     </v-card-text>
                     <v-card-actions class="justify-center">
                         <v-btn :to="{ name: 'profile' }" rounded="lg" size="small" variant="tonal"
                             :color="currentTheme === 'dark' ? 'green-lighten-3' : 'green-darken-2'">
                             <v-icon start>mdi-arrow-right-circle</v-icon>
-                            {{ t('Go to Profile') }}
+                            {{ t('nav_profile') }}
                         </v-btn>
                     </v-card-actions>
                 </v-card>
@@ -282,7 +316,18 @@ const goToWeatherPage = () => router.push({ name: 'weather' });
                 {{ formattedTime }}
             </p>
             <p class="text-h3 text-md-h2 font-weight-medium primary--text">
-                {{ typedGreeting }}
+                <span v-if="isRtl">
+                    <span v-for="(part, index) in finalGreetingText.split(' ')" :key="index">
+                        <span v-if="index === finalGreetingText.split(' ').length - 1 && part.match(/^[A-Z]/)"
+                            dir="ltr">
+                            {{ part }}
+                        </span>
+                        <span v-else>{{ part }} </span>
+                    </span>
+                </span>
+                <span v-else>
+                    {{ typedGreeting }}
+                </span>
                 <span v-if="!isTypingComplete" class="typing-cursor">|</span>
             </p>
         </div>

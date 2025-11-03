@@ -19,7 +19,7 @@ onMounted(() => {
 async function saveName() {
     if (!userName.value.trim()) return;
 
-    // updateName خودش memberSince رو ست می‌کنه
+    // updateName also sets memberSince
     settingsStore.updateName(userName.value);
 
     showModal.value = false;
@@ -40,7 +40,6 @@ function onEnter(e: KeyboardEvent) {
 </script>
 
 <template>
-    <!-- Name Input -->
     <teleport to="body">
         <div v-if="showModal" class="modal-backdrop">
             <v-card class="modal-card mx-auto pa-6 pa-md-8 rounded-xl" max-width="460" elevation="24">
@@ -66,13 +65,12 @@ function onEnter(e: KeyboardEvent) {
         </div>
     </teleport>
 
-    <!-- Welcome Animation -->
     <teleport to="body">
         <div v-if="showWelcome" class="welcome-backdrop">
             <div class="welcome-content">
                 <h1 class="welcome-title">
-                    <span v-for="(l, i) in 'Welcome,'.split('')" :key="i" class="wave" :style="{ '--i': i }">{{ l
-                        }}</span>
+                    <span v-for="(l, i) in t('Welcome,').split('')" :key="i" class="wave" :style="{ '--i': i }">{{ l
+                    }}</span>
                     &nbsp;
                     <span class="name-pop">{{ userName }}!</span>
                 </h1>

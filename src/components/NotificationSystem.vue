@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import { useNotificationStore } from '@/stores/notification';
 import { storeToRefs } from 'pinia';
-import { watch } from 'vue';
+import { watch, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const notifyStore = useNotificationStore();
 const { notifications } = storeToRefs(notifyStore);
+const { locale } = useI18n();
+
+const isRtl = computed(() => locale.value === 'fa');
 
 // --- Configuration ---
 const NOTIFY_VISIBLE_DURATION = 3500;
@@ -66,19 +70,26 @@ watch(notifications, (newNotifications) => {
 </script>
 
 <template>
-    <div class="notification-container">
+    <div class="notification-container" :class="{ 'rtl-mode': isRtl }">
         <transition-group name="notify" tag="div" class="notify-group">
             <div v-for="n in notifications" :key="n.id" class="notify-item" @click="removeManually(n.id)">
                 <v-card class="d-flex align-center pa-3 rounded-pill elevation-8"
                     :style="{ background: `linear-gradient(${getConfig(n.type).bgGradient}) !important` }">
-                    <v-icon start size="24" color="white" class="mr-3">
+
+                    <v-icon v-if="!isRtl" start size="24" color="white" class="mr-3">
                         {{ getConfig(n.type).icon }}
                     </v-icon>
+
                     <span class="text-white font-weight-regular">{{ n.message }}</span>
                     <v-spacer />
+
                     <v-btn icon variant="text" size="small" @click.stop="removeManually(n.id)" class="ml-2">
                         <v-icon color="white" size="20">mdi-close</v-icon>
                     </v-btn>
+
+                    <v-icon v-if="isRtl" end size="24" color="white" class="ml-3">
+                        {{ getConfig(n.type).icon }}
+                    </v-icon>
                 </v-card>
             </div>
         </transition-group>
@@ -86,13 +97,19 @@ watch(notifications, (newNotifications) => {
 </template>
 
 <style scoped>
-/* FIX: Increased top value to 80px for more space below the App Bar */
 .notification-container {
     position: fixed;
     top: 80px;
     right: 16px;
+    /* Default LTR positioning */
     z-index: 10000;
     max-width: 420px;
+}
+
+/* RTL-specific positioning and animation overrides */
+.notification-container.rtl-mode {
+    left: 16px;
+    right: auto;
 }
 
 .notify-group {
@@ -106,7 +123,7 @@ watch(notifications, (newNotifications) => {
     will-change: transform, opacity;
 }
 
-/* --- Vue Transition Classes --- */
+/* --- Vue Transition Classes (LTR) --- */
 .notify-enter-active {
     transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
@@ -114,6 +131,7 @@ watch(notifications, (newNotifications) => {
 .notify-enter-from {
     opacity: 0;
     transform: translateX(100%);
+    /* Enter from right */
 }
 
 .notify-leave-active {
@@ -123,9 +141,21 @@ watch(notifications, (newNotifications) => {
 .notify-leave-to {
     opacity: 0;
     transform: translateX(100%);
+    /* Leave to right */
 }
 
 .notify-move {
     transition: transform 0.4s ease;
+}
+
+/* --- Vue Transition Classes (RTL - Override) --- */
+.rtl-mode .notify-enter-from {
+    transform: translateX(-100%);
+    /* Enter from left */
+}
+
+.rtl-mode .notify-leave-to {
+    transform: translateX(-100%);
+    /* Leave to left */
 }
 </style>
