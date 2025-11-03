@@ -24,7 +24,7 @@ function saveName() {
     const trimmedName = newUserName.value.trim();
     settingsStore.updateName(trimmedName);
     isNameChanged.value = false;
-    notify.updateName(t('Name updated to: ') + trimmedName);
+    notify.updateName(t('notification.name_updated', { name: trimmedName }));
 }
 
 // --- Sync store → local refs ---
@@ -35,20 +35,22 @@ watch(() => settingsStore.userName, (v) => {
 watch(() => settingsStore.currentLocale, (v) => (newLocale.value = v));
 watch(() => settingsStore.currentTheme, (v) => (newTheme.value = v));
 
-// --- Save instantly for locale & theme ---
+// --- Save instantly for locale & theme (Auto-Update) ---
 watch(newLocale, (val) => {
     settingsStore.updateLocale(val);
     const localeName = t(val === 'fa' ? 'farsi' : 'english');
-    notify.changeLocale(t('Language changed to: ') + localeName);
+    notify.changeLocale(t('notification.locale_changed', { locale: localeName }));
 });
 
-// Corrected theme notification message.
+// Theme notification is triggered here (centralized logic)
 watch(newTheme, (val) => {
     settingsStore.updateTheme(val);
     theme.global.name.value = val;
     const isLight = val === 'light';
-    const msg = isLight ? t('Light') : t('Dark');
-    notify.changeTheme(isLight, t('Theme changed to: ') + msg);
+
+    // Use i18n keys for complete message
+    const msg = isLight ? t('notification.theme_light') : t('notification.theme_dark');
+    notify.changeTheme(isLight, msg);
 });
 
 // --- Detect name change ---
@@ -66,18 +68,23 @@ function formatMemberSince() {
     }
 
     const date = new Date(settingsStore.memberSince);
-    // Use correct locale for date formatting (fa-IR for 'fa' locale)
-    const locale = settingsStore.currentLocale === 'fa' ? 'fa-IR' : 'en-US';
+    // Use correct locale string for date formatting
+    const localeString = settingsStore.currentLocale === 'fa' ? 'fa-IR' : 'en-US';
 
-    const dateStr = date.toLocaleDateString(locale, { year: 'numeric', month: '2-digit', day: '2-digit' });
-    const timeStr = date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', hour12: false });
+    const dateOptions: Intl.DateTimeFormatOptions = { year: 'numeric', month: '2-digit', day: '2-digit' };
+    const timeOptions: Intl.DateTimeFormatOptions = { hour: '2-digit', minute: '2-digit', hour12: false };
 
+    const dateStr = date.toLocaleDateString(localeString, dateOptions);
+    const timeStr = date.toLocaleTimeString(localeString, timeOptions);
+
+    // Format is 'Date, Time'
     memberSinceFormatted.value = `${dateStr}, ${timeStr}`;
 }
 
 onMounted(formatMemberSince);
 watch(() => settingsStore.memberSince, formatMemberSince);
-watch(() => settingsStore.currentLocale, formatMemberSince);
+// Watch locale to reformat the date/time string when language changes
+watch(() => settingsStore.currentLocale, formatMemberSince); 
 </script>
 
 <template>
@@ -123,9 +130,8 @@ watch(() => settingsStore.currentLocale, formatMemberSince);
                                 <v-select v-model="newLocale" :items="[
                                     { value: 'en', title: t('english') },
                                     { value: 'fa', title: t('farsi') }
-                                ]" :label="t('Language')" item-title="title" item-value="value"
-                                    variant="solo-filled" hide-details rounded prepend-inner-icon="mdi-web"
-                                    class="mb-3" />
+                                ]" :label="t('Language')" item-title="title" item-value="value" variant="solo-filled"
+                                    hide-details rounded prepend-inner-icon="mdi-web" class="mb-3" />
                             </v-col>
 
                             <v-col cols="12" sm="6">

@@ -77,7 +77,7 @@ const fa = {
         "sort_by": "مرتب‌سازی بر اساس",
         "toggle_sort_direction": "تغییر جهت مرتب‌سازی",
         "tasks_shown": "کار در انتظار انجام شدن",
-        "tasks_remaining": "تسک باقی مانده", // FIX: Removed {count}
+        "tasks_remaining": "تسک باقی مانده",
         "delete_all_tasks_title": "حذف تمام کارها",
         "task_title_label": "عنوان کار",
         "mark_as_completed": "علامت‌گذاری به عنوان انجام شده"
@@ -210,7 +210,7 @@ const en = {
         "sort_by": "Sort By",
         "toggle_sort_direction": "Toggle Sort Direction",
         "tasks_shown": "Pending Tasks",
-        "tasks_remaining": "Pending Tasks", // FIX: Simplified
+        "tasks_remaining": "Pending Tasks",
         "delete_all_tasks_title": "Delete All Tasks",
         "task_title_label": "Task Title",
         "mark_as_completed": "Mark as Completed"

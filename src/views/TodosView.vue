@@ -53,10 +53,10 @@ const handleAddTodo = () => {
 
   if (addedSuccessfully) {
     newTodoText.value = '';
-    // استفاده از کلید ترجمه برای پیام نوتیفیکیشن
+    // Use translation key for notification message
     notify.addTodo(t('notification.task_added', { task: trimmedText }));
   } else {
-    // استفاده از کلید ترجمه برای پیام خطا
+    // Use translation key for error message
     notify.error(t('notification.task_already_exists', { task: trimmedText }));
   }
 };
@@ -90,15 +90,15 @@ const saveEdit = () => {
       if (success) {
         // Check if the completion status was changed to 'done' in the modal
         if (!initialIsDone && newIsDone) {
-          // استفاده از کلید ترجمه
+          // Use translation key
           notify.completeTodo(t('notification.task_completed', { task: trimmedText }));
         } else {
-          // استفاده از کلید ترجمه
+          // Use translation key
           notify.editTodo(t('notification.task_updated', { task: trimmedText }));
         }
         editDialog.value = false;
       } else {
-        // استفاده از کلید ترجمه
+        // Use translation key
         notify.error(t('notification.cannot_save_edit'));
       }
     }
@@ -115,15 +115,15 @@ const toggleAndNotify = (id: number) => {
   todoStore.toggleTodo(id);
 
   if (wasDone) {
-    // استفاده از کلید ترجمه
+    // Use translation key
     notify.reopenTodo(t('notification.task_reopened', { task: todo.text }));
   } else {
-    // استفاده از کلید ترجمه
+    // Use translation key
     notify.completeTodo(t('notification.task_completed', { task: todo.text }));
   }
 };
 
-// به‌روزرسانی filterOptions برای استفاده از کلیدهای ترجمه
+// Update filterOptions to use translation keys
 const filterOptions = computed(() => [
   { text: t('filter_options.all'), value: 'all', icon: 'mdi-list-box-outline' },
   { text: t('filter_options.pending'), value: 'pending', icon: 'mdi-timer-sand' },
@@ -140,7 +140,7 @@ const executeRemoveSingle = () => {
   if (todoToDelete.value !== null) {
     const text = todoStore.todos.find(t => t.id === todoToDelete.value)?.text || '';
     todoStore.removeTodo(todoToDelete.value);
-    // استفاده از کلید ترجمه
+    // Use translation key
     notify.deleteTodo(t('notification.task_deleted', { task: text }));
   }
   deleteSingleDialog.value = false;
@@ -155,7 +155,7 @@ const confirmRemoveAll = () => {
 
 const executeRemoveAll = () => {
   todoStore.clearAllTodos();
-  // استفاده از کلید ترجمه
+  // Use translation key
   notify.deleteTodo(t('notification.all_tasks_deleted'));
   deleteAllDialog.value = false;
 };
@@ -233,8 +233,8 @@ const getAddButtonColor = () => {
           <v-select v-model="sortBy" :items="[
             { text: t('sort_options.creation_time'), value: 'createdAt' },
             { text: t('sort_options.alphabetical'), value: 'text' }
-          ]" :label="t('todo.sort_by')" item-title="text" item-value="value" density="compact" variant="outlined"
-            rounded="lg" hide-details prepend-inner-icon="mdi-sort" />
+          ]" :label="t('todo.sort_by')" item-title="text" item-value="value" density="compact"
+            variant="outlined" rounded="lg" hide-details prepend-inner-icon="mdi-sort" />
         </v-col>
         <v-col cols="12" sm="4" md="6" class="text-sm-end mt-4 mt-sm-0">
           <v-btn icon variant="text" @click="sortDesc = !sortDesc" :title="t('todo.toggle_sort_direction')"
@@ -279,15 +279,14 @@ const getAddButtonColor = () => {
               </v-chip>
 
               <v-btn icon variant="flat" size="small" :color="getEditButtonColor()" @click.stop="startEditing(todo)"
-                :disabled="editingTodo?.id === todo.id" class="ml-2 mr-1" data-testid="edit-todo-btn">
+                class="ml-2 mr-1" data-testid="edit-todo-btn">
                 <v-icon size="small">mdi-pencil</v-icon>
                 <v-tooltip activator="parent" location="top">{{ t('button.edit') }}</v-tooltip>
               </v-btn>
 
               <v-btn icon variant="flat" size="small"
                 :color="settingsStore.currentTheme === 'dark' ? 'red-darken-4' : 'red-lighten-4'"
-                @click.stop="confirmRemoveSingle(todo.id)" :disabled="editingTodo?.id === todo.id"
-                data-testid="delete-todo-btn">
+                @click.stop="confirmRemoveSingle(todo.id)" data-testid="delete-todo-btn">
                 <v-icon size="small" color="error">mdi-delete-outline</v-icon>
                 <v-tooltip activator="parent" location="top">{{ t('button.delete') }}</v-tooltip>
               </v-btn>

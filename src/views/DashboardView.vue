@@ -274,12 +274,12 @@ const getGreetingParts = (text: string, isRtl: boolean) => {
                                 {{ displayTemp }}
                             </p>
                             <p class="subtitle-2 text-medium-emphasis">
-                                <span v-if="isRtl" style="direction: rtl;">
+                                <span v-if="isRtl" class="d-inline-flex" style="direction: rtl;">
                                     <span dir="rtl" class="d-inline-block">
                                         {{
                                             getDashboardWeatherMapping(dashboardWeather?.current_weather?.temperature)?.text
                                         }}
-                                        {{ t('weather.in_preposition') }}
+                                        {{ t('weather.in_preposition') }}&nbsp;
                                     </span>
                                     <span dir="ltr" class="d-inline-block">
                                         {{ displayCityName }}

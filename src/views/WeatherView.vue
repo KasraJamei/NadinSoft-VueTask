@@ -42,7 +42,7 @@ async function fetchWeather(city: CityData) {
         weatherData.value = data;
     } catch (err: any) {
         console.error('Weather API Error:', err);
-        // استفاده از کلید ترجمه
+        // Use translation key
         error.value = t('alert.error_fetching_weather');
     } finally {
         isLoading.value = false;
@@ -57,8 +57,9 @@ watch(selectedCity, (newCity) => {
 const saveCityToDashboard = () => {
     if (selectedCity.value) {
         weatherStore.saveWeatherCity(selectedCity.value);
-        const cityNameDisplay = locale.value === 'fa' && selectedCity.value.name_fa ? selectedCity.value.name_fa : selectedCity.value.city;
-        // استفاده از کلید ترجمه
+        // Always use the English city name for the notification message display
+        const cityNameDisplay = selectedCity.value.city;
+        // Use translation key
         notify.saveCity(t('notification.default_city_saved', { city: cityNameDisplay }));
     }
 };
@@ -66,6 +67,8 @@ const saveCityToDashboard = () => {
 const canSaveCity = computed(() => !!selectedCity.value);
 
 const cityName = computed(() => {
+    // Keep the logic here to display the Farsi name if available and locale is 'fa' for the main card, 
+    // but the selector below will use English name for input.
     return selectedCity.value
         ? (locale.value === 'fa' && selectedCity.value.name_fa ? selectedCity.value.name_fa : selectedCity.value.city)
         : '';
@@ -79,7 +82,7 @@ const temperature = computed(() => {
 
 const weatherDisplay = computed(() => {
     if (temperature.value !== null) return getWeatherMapping(temperature.value);
-    // استفاده از کلید ترجمه
+    // Use translation key
     return { icon: 'mdi-cloud-question', text: t('weather.status_select_city'), color: 'grey', gradient: 'to top right, #e0e0e0, #bdbdbd' };
 });
 
@@ -109,8 +112,8 @@ const windSpeed = computed(() => {
             </v-card-title>
 
             <v-autocomplete v-model="selectedCity" :items="cities" :label="t('weather.enter_city_placeholder')"
-                :item-title="locale === 'fa' ? 'name_fa' : 'city'" item-value="city" return-object variant="solo-filled"
-                density="comfortable" clearable rounded="lg" class="mb-4">
+                item-title="city" item-value="city" return-object variant="solo-filled" density="comfortable" clearable
+                rounded="lg" class="mb-4">
                 <template v-slot:item="{ props, item }">
                     <v-list-item v-bind="props" :title="item.raw.name_fa || item.raw.city" :subtitle="item.raw.city">
                         <template v-slot:prepend>
@@ -175,6 +178,4 @@ const windSpeed = computed(() => {
     </v-container>
 </template>
 
-<style scoped>
-/* (Styles are good as they are) */
-</style>
+<style scoped></style>
