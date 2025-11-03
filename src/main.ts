@@ -20,8 +20,8 @@ import i18n from './i18n';
 import { type I18n } from 'vue-i18n';
 
 
-// Cast the i18n instance to LocaleInstance to satisfy Vuetify's adapter type check
-const vuetifyI18nAdapter = i18n as unknown as LocaleInstance;
+// Use the Vue I18n global scope as the Vuetify locale adapter for message and locale synchronization
+const vuetifyI18nAdapter = i18n.global as unknown as LocaleInstance;
 
 
 // --- CREATE VUETIFY INSTANCE ---
@@ -31,7 +31,7 @@ const vuetify = createVuetify({
   icons: {
     defaultSet: 'mdi',
   },
-  // Configuration for Vuetify locale integration with i18n
+  // Configure Vuetify locale to use the Vue I18n adapter
   locale: {
     adapter: vuetifyI18nAdapter,
   },
@@ -39,11 +39,11 @@ const vuetify = createVuetify({
 // ------------------------------
 
 // --- DYNAMIC RTL SYNCHRONIZATION ---
-// FIX: Use a getter function inside watch() to securely access the locale value
+// Watch the i18n locale and update Vuetify's RTL setting
 watch(
-  () => i18n.global.locale, // Watch the getter function's return value (the string locale)
+  // Use a getter function to securely access the locale value
+  () => i18n.global.locale,
   (newLocale) => {
-    // newLocale is the string value ('en' or 'fa')
     vuetify.locale.isRtl.value = newLocale === 'fa';
   },
   { immediate: true } // Run immediately on startup to set the initial direction

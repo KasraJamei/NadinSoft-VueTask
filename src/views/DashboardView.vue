@@ -10,7 +10,7 @@ import { useRouter } from 'vue-router';
 const todoStore = useTodoStore();
 const settingsStore = useSettingsStore();
 const weatherStore = useWeatherStore();
-const { t, locale } = useI18n(); // locale is a Ref<string>
+const { t, locale } = useI18n();
 const router = useRouter();
 
 const isRtl = computed(() => locale.value === 'fa');
@@ -171,12 +171,10 @@ const displayWeatherStatusText = computed(() => {
     const status = getDashboardWeatherMapping(temp).text;
     const city = displayCityName.value;
 
-    // FIX: Reverse order and use LTR span for city name in Farsi mode 
+    // This returns the full string "Status Preposition City" for both LTR and RTL for template fallback
     if (isRtl.value) {
-        // Output: [Status] [در] [Tehran]
         return `${status} ${t('weather.in_preposition')} ${city}`;
     }
-
     return `${status} ${t('in')} ${city}`;
 });
 
@@ -199,10 +197,28 @@ watch(savedCity, (city) => {
 
 const goToWeatherPage = () => router.push({ name: 'weather' });
 
-// Computes the final greeting string with correct punctuation and LTR/RTL flow
-const finalGreetingText = computed(() => {
-    return typedGreeting.value;
-});
+const finalGreetingText = computed(() => typedGreeting.value);
+
+// Helper to reliably separate the greeting (RTL) and the name (LTR) for correct wrapping
+const getGreetingParts = (text: string, isRtl: boolean) => {
+    if (!isRtl) return { rtlPart: text, ltrPart: '' };
+
+    // The i18n key structure is "عبارت فارسی، {name}"
+    // Match[1] = RTL Text (e.g., "عصر بخیر")
+    // Match[2] = LTR Name (e.g., "Kasra")
+    const match = text.match(/(.*),\s*(.*)$/);
+
+    if (match && match[2]) {
+        // FIX: Put the comma with the LTR part for better alignment and remove extra spaces.
+        const rtlText = match[1].trim();
+        const ltrTextWithComma = `،${match[2].trim()}`;
+
+        return { rtlPart: rtlText, ltrPart: ltrTextWithComma };
+    }
+
+    // Fallback logic
+    return { rtlPart: text.trim(), ltrPart: '' };
+};
 </script>
 
 <template>
@@ -223,7 +239,7 @@ const finalGreetingText = computed(() => {
                             {{ displayedPendingTasks }}
                         </p>
                         <p class="subtitle-2 text-medium-emphasis">
-                            {{ t('todo.tasks_shown') }}
+                            {{ t('todo.tasks_remaining') }}
                         </p>
                     </v-card-text>
                     <v-card-actions class="justify-center">
@@ -259,11 +275,14 @@ const finalGreetingText = computed(() => {
                             </p>
                             <p class="subtitle-2 text-medium-emphasis">
                                 <span v-if="isRtl" style="direction: rtl;">
-                                    <span v-for="(part, index) in displayWeatherStatusText.split(' ')" :key="index">
-                                        <span v-if="index === displayWeatherStatusText.split(' ').length - 1" dir="ltr">
-                                            {{ part }}
-                                        </span>
-                                        <span v-else>{{ part }} </span>
+                                    <span dir="rtl" class="d-inline-block">
+                                        {{
+                                            getDashboardWeatherMapping(dashboardWeather?.current_weather?.temperature)?.text
+                                        }}
+                                        {{ t('weather.in_preposition') }}
+                                    </span>
+                                    <span dir="ltr" class="d-inline-block">
+                                        {{ displayCityName }}
                                     </span>
                                 </span>
                                 <span v-else>
@@ -316,13 +335,12 @@ const finalGreetingText = computed(() => {
                 {{ formattedTime }}
             </p>
             <p class="text-h3 text-md-h2 font-weight-medium primary--text">
-                <span v-if="isRtl">
-                    <span v-for="(part, index) in finalGreetingText.split(' ')" :key="index">
-                        <span v-if="index === finalGreetingText.split(' ').length - 1 && part.match(/^[A-Z]/)"
-                            dir="ltr">
-                            {{ part }}
-                        </span>
-                        <span v-else>{{ part }} </span>
+                <span v-if="isRtl" class="d-inline-flex" style="direction: rtl;">
+                    <span dir="rtl" class="d-inline-block">
+                        {{ getGreetingParts(finalGreetingText, isRtl).rtlPart }}&nbsp;
+                    </span>
+                    <span dir="ltr" class="d-inline-block">
+                        {{ getGreetingParts(finalGreetingText, isRtl).ltrPart }}
                     </span>
                 </span>
                 <span v-else>
@@ -335,6 +353,7 @@ const finalGreetingText = computed(() => {
 </template>
 
 <style scoped>
+/* Styles remain the same */
 .dashboard-card {
     min-height: 200px;
     display: flex;

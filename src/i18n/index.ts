@@ -1,5 +1,3 @@
-// src/i18n/index.ts
-
 import { createI18n, type I18nOptions } from 'vue-i18n';
 import { en as vuetifyEn } from 'vuetify/locale';
 import { fa as vuetifyFa } from 'vuetify/locale';
@@ -10,11 +8,11 @@ const fa = {
     $vuetify: vuetifyFa,
     "in": "در",
 
-    // Time-based Greetings - FIX: تغییر ترتیب و حذف کاما برای نمایش صحیح RTL/LTR
-    welcome: '{name}، خوش آمدید',
-    good_morning: '{name}، صبح بخیر',
-    good_afternoon: '{name}، عصر بخیر', // <--- اصلاح نهایی جهت
-    good_evening: '{name}، شب بخیر',
+    // Time-based Greetings: Structured to work with the RTL/LTR splitting logic in DashboardView.vue
+    welcome: 'خوش آمدید، {name}',
+    good_morning: 'صبح بخیر، {name}',
+    good_afternoon: 'عصر بخیر، {name}',
+    good_evening: 'شب بخیر، {name}',
 
     // Menu and Main Titles
     dashboard: 'داشبورد',
@@ -79,6 +77,7 @@ const fa = {
         "sort_by": "مرتب‌سازی بر اساس",
         "toggle_sort_direction": "تغییر جهت مرتب‌سازی",
         "tasks_shown": "کار در انتظار انجام شدن",
+        "tasks_remaining": "تسک باقی مانده", // FIX: Removed {count}
         "delete_all_tasks_title": "حذف تمام کارها",
         "task_title_label": "عنوان کار",
         "mark_as_completed": "علامت‌گذاری به عنوان انجام شده"
@@ -116,7 +115,8 @@ const fa = {
         "status_mild": "ملایم",
         "status_cool_rainy": "خنک و بارانی",
         "status_cold": "سرد",
-        "status_select_city": "شهر را انتخاب کنید"
+        "status_select_city": "شهر را انتخاب کنید",
+        "in_preposition": "در"
     },
     "notification": {
         "name_updated": "نام به {name} تغییر کرد",
@@ -210,6 +210,7 @@ const en = {
         "sort_by": "Sort By",
         "toggle_sort_direction": "Toggle Sort Direction",
         "tasks_shown": "Pending Tasks",
+        "tasks_remaining": "Pending Tasks", // FIX: Simplified
         "delete_all_tasks_title": "Delete All Tasks",
         "task_title_label": "Task Title",
         "mark_as_completed": "Mark as Completed"
@@ -247,7 +248,8 @@ const en = {
         "status_mild": "Mild",
         "status_cool_rainy": "Cool & Rainy",
         "status_cold": "Cold",
-        "status_select_city": "Select City"
+        "status_select_city": "Select City",
+        "in_preposition": "in"
     },
     "notification": {
         "name_updated": "Name updated to: {name}",
