@@ -1,23 +1,23 @@
-import { createI18n, type I18nOptions } from 'vue-i18n';
-import { en as vuetifyEn } from 'vuetify/locale';
-import { fa as vuetifyFa } from 'vuetify/locale';
-
+// src/i18n/index.ts
+import { createI18n, type I18nOptions } from 'vue-i18n'
+import { en as vuetifyEn } from 'vuetify/locale'
+import { fa as vuetifyFa } from 'vuetify/locale'
 
 // Farsi (Persian) Messages
 const fa = {
     $vuetify: vuetifyFa,
     "in": "در",
 
-    // Time-based Greetings: Structured to work with the RTL/LTR splitting logic in DashboardView.vue
+    // Time-based Greetings
     welcome: 'خوش آمدید، {name}',
-    good_morning: 'صبح بخیر، {name}',
-    good_afternoon: 'عصر بخیر، {name}',
-    good_evening: 'شب بخیر، {name}',
+    good_morning: 'صبح بخیر',
+    good_afternoon: 'ظهر بخیر',
+    good_evening: 'عصر بخیر',
+    good_night: 'شب بخیر',
 
     // Menu and Main Titles
     dashboard: 'داشبورد',
     todos: 'لیست کارها',
-    profile: 'پروفایل',
 
     // Navigation Menu
     nav_dashboard: 'داشبورد',
@@ -25,7 +25,7 @@ const fa = {
     nav_weather: 'آب و هوا',
     nav_profile: 'پروفایل',
 
-    // Settings (ProfileView & Modals)
+    // Settings
     'User Profile': 'پروفایل کاربری',
     'Account Details': 'جزئیات حساب',
     'Member Since': 'عضویت از',
@@ -36,20 +36,21 @@ const fa = {
     'Your Name': 'نام شما',
     'Welcome!': 'خوش آمدید!',
     'Logging Out': 'در حال خروج',
-    'Light': 'روشن',
-    'Dark': 'تیره',
-
     name: 'نام',
     theme: 'پوسته',
     locale: 'زبان',
     save: 'ذخیره',
+    Save: 'ذخیره',
     light: 'روشن',
     dark: 'تیره',
+    Name: 'نام',
+    Language: 'زبان',
+    Theme: 'پوسته',
     english: 'English',
     farsi: 'فارسی',
     settings_saved: 'تنظیمات با موفقیت ذخیره شد.',
 
-    // Application Keys (Todos, Weather, Dialogs, Alerts, Notifications)
+    // Application Keys
     "title": {
         "todo_list": "لیست کارها (TODO)",
         "weather_forecast": "پیش‌بینی آب و هوا"
@@ -70,6 +71,10 @@ const fa = {
     "status": {
         "completed": "انجام شده",
         "pending": "در انتظار"
+    },
+    "profile": {
+        "name_label": "نام کاربر",
+        "member_since_label": "عضویت از"
     },
     "todo": {
         "placeholder": "چه کاری باید انجام شود؟",
@@ -119,23 +124,23 @@ const fa = {
         "in_preposition": "در"
     },
     "notification": {
-        "theme_changed": "پوسته به {theme} تغییر یافت", // FIXED: Added missing key
+        "theme_changed": "پوسته به {theme} تغییر یافت",
         "name_updated": "نام به {name} تغییر کرد",
         "locale_changed": "زبان به {locale} تغییر یافت",
         "theme_light": "تغییر به حالت روشن",
         "theme_dark": "تغییر به حالت تاریک",
-        "task_added": "کار اضافه شد: {task}",
+        "task_added": "کار «{task}» اضافه شد.",
         "task_already_exists": "این کار از قبل وجود دارد: {task}",
-        "task_updated": "کار به‌روزرسانی شد: {task}",
-        "task_completed": "کار انجام شد: {task}",
-        "task_reopened": "کار دوباره باز شد: {task}",
-        "task_deleted": "کار حذف شد: {task}",
+        "task_updated": "کار «{task}» به‌روزرسانی شد.",
+        "task_completed": "کار «{task}» انجام شد.",
+        "task_reopened": "کار «{task}» دوباره باز شد.",
+        "task_deleted": "کار «{task}» حذف شد.",
         "all_tasks_deleted": "همه کارها حذف شدند",
         "cannot_save_edit": "ذخیره تغییرات امکان‌پذیر نیست. کاری با این نام از قبل وجود دارد.",
         "default_city_saved": "شهر پیش‌فرض ذخیره شد: {city}",
         "successfully_logged_out": "با موفقیت خارج شدید."
     }
-};
+}
 
 // English Messages
 const en = {
@@ -144,14 +149,14 @@ const en = {
 
     // Time-based Greetings
     welcome: 'Welcome, {name}',
-    good_morning: 'Good morning, {name}',
-    good_afternoon: 'Good afternoon, {name}',
-    good_evening: 'Good evening, {name}',
+    good_morning: 'Good morning',
+    good_afternoon: 'Good afternoon',
+    good_evening: 'Good evening',
+    good_night: 'Good night',
 
     // Menu and Main Titles
     dashboard: 'Dashboard',
     todos: 'Todos',
-    profile: 'Profile',
 
     // Navigation Menu
     nav_dashboard: 'Dashboard',
@@ -159,7 +164,7 @@ const en = {
     nav_weather: 'Weather',
     nav_profile: 'Profile',
 
-    // Settings (ProfileView & Modals)
+    // Settings
     'User Profile': 'User Profile',
     'Account Details': 'Account Details',
     'Member Since': 'Member Since',
@@ -170,20 +175,21 @@ const en = {
     'Your Name': 'Your Name',
     'Welcome!': 'Welcome!',
     'Logging Out': 'Logging Out',
-    'Light': 'Light',
-    'Dark': 'Dark',
-
     name: 'Name',
     theme: 'Theme',
     locale: 'Language',
     save: 'Save',
+    Save: 'Save',
     light: 'Light',
     dark: 'Dark',
+    Name: 'Name',
+    Language: 'Language',
+    Theme: 'Theme',
     english: 'English',
     farsi: 'فارسی',
     settings_saved: 'Settings saved successfully.',
 
-    // Application Keys (Todos, Weather, Dialogs, Alerts, Notifications)
+    // Application Keys
     "title": {
         "todo_list": "TODO List",
         "weather_forecast": "Weather Forecast"
@@ -204,6 +210,10 @@ const en = {
     "status": {
         "completed": "Completed",
         "pending": "Pending"
+    },
+    "profile": {
+        "name_label": "Name",
+        "member_since_label": "Member Since"
     },
     "todo": {
         "placeholder": "What needs to be done?",
@@ -253,24 +263,23 @@ const en = {
         "in_preposition": "in"
     },
     "notification": {
-        "theme_changed": "Theme changed to: {theme}", // FIXED: Added missing key
+        "theme_changed": "Theme changed to: {theme}",
         "name_updated": "Name updated to: {name}",
         "locale_changed": "Language changed to: {locale}",
         "theme_light": "Switched to Light Mode",
         "theme_dark": "Switched to Dark Mode",
-        "task_added": "Task added: {task}",
+        "task_added": "Task \"{task}\" has been added.",
         "task_already_exists": "Task already exists: {task}",
-        "task_updated": "Task updated: {task}",
-        "task_completed": "Task completed: {task}",
-        "task_reopened": "Task reopened: {task}",
-        "task_deleted": "Task deleted: {task}",
+        "task_updated": "Task \"{task}\" has been updated.",
+        "task_completed": "Task \"{task}\" has been completed.",
+        "task_reopened": "Task \"{task}\" has been reopened.",
+        "task_deleted": "Task \"{task}\" has been deleted.",
         "all_tasks_deleted": "All tasks deleted",
         "cannot_save_edit": "Cannot save changes. A todo with that name already exists.",
         "default_city_saved": "Default city saved: {city}",
         "successfully_logged_out": "Successfully logged out."
     }
-};
-
+}
 
 const i18n = createI18n({
     locale: 'en',
@@ -281,6 +290,6 @@ const i18n = createI18n({
     },
     legacy: false,
     globalInjection: true,
-} as I18nOptions);
+} as I18nOptions)
 
-export default i18n;
+export default i18n

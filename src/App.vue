@@ -1,72 +1,56 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
-import { useSettingsStore } from '@/stores/settings';
-import { useI18n } from 'vue-i18n';
-import { useTheme } from 'vuetify';
+import { ref, computed, watch } from 'vue'
+import { useSettingsStore } from '@/stores/settings'
+import { useI18n } from 'vue-i18n'
+import { useTheme } from 'vuetify'
+import TheAppBar from '@/components/TheAppBar.vue'
+import TheSidebar from '@/components/TheSidebar.vue'
+import FirstVisitModal from '@/components/FirstVisitModal.vue'
+import NotificationSystem from '@/components/NotificationSystem.vue'
 
-import TheAppBar from '@/components/TheAppBar.vue';
-import TheSidebar from '@/components/TheSidebar.vue';
-import FirstVisitModal from '@/components/FirstVisitModal.vue';
-import NotificationSystem from '@/components/NotificationSystem.vue';
+const settingsStore = useSettingsStore()
+const { locale } = useI18n()
+const vuetifyTheme = useTheme()
 
-const settingsStore = useSettingsStore();
-const { locale } = useI18n();
-const vuetifyTheme = useTheme();
+const drawer = ref(false)
+const isRtl = computed(() => settingsStore.currentLocale === 'fa')
 
-// 💡 FIX 1: سایدبار به طور پیش‌فرض بسته باشد تا در موبایل باز نشود
-const drawer = ref(false);
-
-// از store استفاده می‌کند
-const isRtl = computed(() => settingsStore.currentLocale === 'fa');
-
-// ✅ Theme Watcher: در اینجا قرار دارد و در همه صفحات کار می‌کند (رفع مشکل دکمه)
 watch(() => settingsStore.currentTheme, (t) => {
-  vuetifyTheme.global.name.value = t;
-}, { immediate: true });
+  vuetifyTheme.global.name.value = t
+}, { immediate: true })
 
 watch(() => settingsStore.currentLocale, (l) => {
-  // Update the i18n locale which in turn updates Vuetify locale
-  locale.value = l;
-}, { immediate: true });
-
+  locale.value = l
+}, { immediate: true })
 
 watch(isRtl, (rtl) => {
-  // Set global text direction for RTL/LTR support on the root HTML element
-  document.documentElement.dir = rtl ? 'rtl' : 'ltr';
-}, { immediate: true });
+  document.documentElement.dir = rtl ? 'rtl' : 'ltr'
+  document.documentElement.lang = rtl ? 'fa' : 'en'
+}, { immediate: true })
 
 function toggleDrawer() {
-  drawer.value = !drawer.value;
+  drawer.value = !drawer.value
 }
 </script>
 
 <template>
   <v-app>
     <v-layout>
-
       <TheAppBar @toggle-drawer="toggleDrawer" />
-
       <TheSidebar v-model:drawer="drawer" />
-
       <FirstVisitModal />
+      <NotificationSystem />
       <v-main>
-        <v-container fluid class="pa-4 pa-sm-6" style="min-height: 100vh;">
-
+        <v-container fluid class="pa-4 pa-sm-6" style="min-height: 100vh">
           <RouterView />
-
         </v-container>
       </v-main>
-
-
-      <NotificationSystem />
-
     </v-layout>
   </v-app>
 </template>
 
 <style>
-/* Ensure vertical scroll is always visible */
 html {
-  overflow-y: scroll !important;
+  overflow-y: auto;
 }
 </style>

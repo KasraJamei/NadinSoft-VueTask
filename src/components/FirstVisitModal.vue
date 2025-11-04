@@ -2,16 +2,19 @@
 import { ref, onMounted, nextTick } from 'vue';
 import { useSettingsStore } from '@/stores/settings';
 import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 
 const { t } = useI18n();
 const settingsStore = useSettingsStore();
+const router = useRouter();
 
 const showModal = ref(false);
 const userName = ref('');
 const showWelcome = ref(false);
 
 onMounted(() => {
-    if (!settingsStore.userName || settingsStore.userName === 'User' || settingsStore.userName.trim() === '') {
+    const name = settingsStore.userName?.trim();
+    if (!name || name === 'User') {
         showModal.value = true;
     }
 });
@@ -19,18 +22,21 @@ onMounted(() => {
 async function saveName() {
     if (!userName.value.trim()) return;
 
-    // updateName also sets memberSince
-    settingsStore.updateName(userName.value);
+    // ذخیره اسم
+    settingsStore.updateName(userName.value.trim());
 
+    // بستن مودال
     showModal.value = false;
-    await nextTick();
 
+    // نمایش انیمیشن Welcome
+    await nextTick();
     showWelcome.value = true;
-    await nextTick();
 
+    // بعد از 3.5 ثانیه: انیمیشن تموم → dispatchEvent → ریدایرکت
     setTimeout(() => {
         showWelcome.value = false;
         window.dispatchEvent(new CustomEvent('welcome-animation-complete'));
+        router.push({ name: 'dashboard' });
     }, 3500);
 }
 
@@ -40,6 +46,7 @@ function onEnter(e: KeyboardEvent) {
 </script>
 
 <template>
+    <!-- Modal for Name Input -->
     <teleport to="body">
         <div v-if="showModal" class="modal-backdrop">
             <v-card class="modal-card mx-auto pa-6 pa-md-8 rounded-xl" max-width="460" elevation="24">
@@ -65,16 +72,17 @@ function onEnter(e: KeyboardEvent) {
         </div>
     </teleport>
 
+    <!-- Welcome Animation -->
     <teleport to="body">
         <div v-if="showWelcome" class="welcome-backdrop">
             <div class="welcome-content">
                 <h1 class="welcome-title">
-                    <span v-for="(l, i) in t('Welcome,').split('')" :key="i" class="wave" :style="{ '--i': i }">{{ l
-                    }}</span>
+                    <span v-for="(l, i) in t('Welcome,').split('')" :key="i" class="wave" :style="{ '--i': i }">
+                        {{ l }}
+                    </span>
                     &nbsp;
                     <span class="name-pop">{{ userName }}!</span>
                 </h1>
-
                 <div class="fireworks">
                     <div v-for="n in 8" :key="n" class="firework" :style="{ '--n': n }" />
                 </div>

@@ -12,52 +12,56 @@ const notify = useNotificationStore();
 
 const isRtl = computed(() => locale.value === 'fa');
 
-// --- Local refs ---
 const newUserName = ref(settingsStore.userName);
 const newLocale = ref(settingsStore.currentLocale);
 const newTheme = ref(settingsStore.currentTheme);
 
-// --- For Save button (name only) ---
+const localeOptions = computed(() => [
+    { value: 'en', title: t('english') },
+    { value: 'fa', title: t('farsi') }
+]);
+
+const themeOptions = computed(() => [
+    { value: 'light', title: t('light') },
+    { value: 'dark', title: t('dark') }
+]);
+
 const isNameChanged = ref(false);
-const showSaveButton = computed(() => isNameChanged.value && newUserName.value.trim() !== settingsStore.userName);
+const showSaveButton = computed(
+    () => isNameChanged.value && newUserName.value.trim() !== '' && newUserName.value.trim() !== settingsStore.userName
+);
 
 function saveName() {
-    if (!newUserName.value.trim()) return;
-    const trimmedName = newUserName.value.trim();
-    settingsStore.updateName(trimmedName);
+    const trimmed = newUserName.value.trim();
+    if (!trimmed) return;
+    settingsStore.updateName(trimmed);
     isNameChanged.value = false;
-    notify.updateName(t('notification.name_updated', { name: trimmedName }));
+    notify.updateName(t('notification.name_updated', { name: trimmed }));
 }
 
-// --- Sync store → local refs ---
-watch(() => settingsStore.userName, (v) => {
+watch(() => settingsStore.userName, v => {
     newUserName.value = v;
     isNameChanged.value = false;
 });
-watch(() => settingsStore.currentLocale, (v) => (newLocale.value = v));
-watch(() => settingsStore.currentTheme, (v) => (newTheme.value = v));
 
-// --- Save instantly for locale & theme (Auto-Update) ---
-watch(newLocale, (val) => {
+watch(() => settingsStore.currentLocale, v => (newLocale.value = v));
+watch(() => settingsStore.currentTheme, v => (newTheme.value = v));
+
+watch(newLocale, val => {
     settingsStore.updateLocale(val);
     const localeName = t(val === 'fa' ? 'farsi' : 'english');
     notify.changeLocale(t('notification.locale_changed', { locale: localeName }));
 });
 
-watch(newTheme, (val) => {
-    // فراخوانی اکشن store. نوتیفیکیشن از داخل settingsStore ارسال می‌شود.
+watch(newTheme, val => {
     settingsStore.updateTheme(val);
-    // به‌روزرسانی تم Vuetify
     theme.global.name.value = val;
-    // ❌ حذف شد: منطق نوتیفیکیشن تم
 });
 
-// --- Detect name change ---
-watch(newUserName, (val) => {
+watch(newUserName, val => {
     isNameChanged.value = val.trim() !== settingsStore.userName;
 });
 
-// --- Member Since ---
 const memberSinceFormatted = ref('');
 
 function formatMemberSince() {
@@ -65,15 +69,10 @@ function formatMemberSince() {
         memberSinceFormatted.value = t('Not set yet');
         return;
     }
-
     const date = new Date(settingsStore.memberSince);
-    const localeString = settingsStore.currentLocale === 'fa' ? 'fa-IR' : 'en-US';
-
-    const dateOptions: Intl.DateTimeFormatOptions = { year: 'numeric', month: '2-digit', day: '2-digit' };
-    const timeOptions: Intl.DateTimeFormatOptions = { hour: '2-digit', minute: '2-digit', hour12: false };
-
-    const combinedOptions: Intl.DateTimeFormatOptions = { ...dateOptions, ...timeOptions, hour12: false };
-    memberSinceFormatted.value = date.toLocaleString(localeString, combinedOptions);
+    const loc = settingsStore.currentLocale === 'fa' ? 'fa-IR' : 'en-US';
+    const opts: Intl.DateTimeFormatOptions = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false };
+    memberSinceFormatted.value = date.toLocaleString(loc, opts);
 }
 
 onMounted(formatMemberSince);
@@ -85,8 +84,8 @@ watch(() => settingsStore.currentLocale, formatMemberSince);
     <v-container fluid class="pa-4">
         <v-row justify="center" class="mb-6">
             <v-col cols="12" class="text-center">
-                <h1 class="text-h5 font-weight-bold primary--text d-flex align-center justify-center">
-                    <v-icon size="x-large" :class="isRtl ? 'ml-2' : 'mr-2'">mdi-account-circle</v-icon>
+                <h1 class="text-h5 font-weight-bold d-flex align-center justify-center">
+                    <v-icon size="x-large" :class="isRtl ? 'ms-2' : 'me-2'">mdi-account-circle</v-icon>
                     {{ t('User Profile') }}
                 </h1>
             </v-col>
@@ -94,56 +93,58 @@ watch(() => settingsStore.currentLocale, formatMemberSince);
 
         <v-row justify="center">
             <v-col cols="12">
-                <v-card elevation="12" class="pa-4 pa-sm-6 rounded-xl mx-auto"
-                    :class="{ 'mx-2': $vuetify.display.mobile }" style="max-width: 600px;">
-
-                    <v-card-title class="text-h6 font-weight-bold primary--text pb-4"
-                        :class="isRtl ? 'text-right' : 'text-left'">
+                <v-card elevation="12" class="pa-4 pa-sm-6 rounded-xl mx-auto" style="max-width: 600px;">
+                    <v-card-title class="text-h6 font-weight-bold pb-4"
+                        :style="{ textAlign: isRtl ? 'right' : 'left' }">
                         {{ t('Account Details') }}
                     </v-card-title>
 
-                    <v-divider class="mb-6"></v-divider>
+                    <v-divider class="mb-6" />
 
                     <v-card-text class="px-0">
                         <v-row dense>
-
+                            <!-- Name Field -->
                             <v-col cols="12">
-                                <div class="d-flex align-center gap-2">
-                                    <v-text-field v-model="newUserName" :label="t('Name')" variant="solo-filled"
-                                        hide-details rounded prepend-inner-icon="mdi-account"
-                                        class="flex-grow-1 mb-3" />
-
-                                    <transition name="save-btn">
-                                        <v-btn v-show="showSaveButton" color="primary" size="large" @click="saveName"
-                                            class="mb-3 save-btn flex-shrink-0" elevation="4">
-                                            {{ t('Save') }}
-                                            <v-icon :start="isRtl" :end="!isRtl">mdi-content-save</v-icon>
-                                        </v-btn>
-                                    </transition>
-                                </div>
+                                <v-text-field v-model="newUserName" :label="t('profile.name_label')"
+                                    variant="solo-filled" hide-details rounded class="mb-3"
+                                    :class="{ 'rtl-input': isRtl }"
+                                    :prepend-inner-icon="!isRtl ? 'mdi-account' : undefined"
+                                    :append-inner-icon="isRtl ? 'mdi-account' : undefined">
+                                </v-text-field>
                             </v-col>
 
+                            <!-- Save Button (appears below name field) -->
+                            <v-col v-if="showSaveButton" cols="12">
+                                <transition name="save-fade" appear>
+                                    <v-btn color="primary" elevation="2" class="save-btn w-100" @click="saveName">
+                                        <v-icon :class="isRtl ? 'ms-2' : 'me-2'">mdi-content-save</v-icon>
+                                        {{ t('Save') }}
+                                    </v-btn>
+                                </transition>
+                            </v-col>
+
+                            <!-- Language Field -->
                             <v-col cols="12" sm="6">
-                                <v-select v-model="newLocale" :items="[
-                                    { value: 'en', title: t('english') },
-                                    { value: 'fa', title: t('farsi') }
-                                ]" :label="t('Language')" item-title="title" item-value="value" variant="solo-filled"
-                                    hide-details rounded prepend-inner-icon="mdi-web" class="mb-3" />
+                                <v-select v-model="newLocale" :items="localeOptions" :label="t('Language')"
+                                    item-title="title" item-value="value" variant="solo-filled" hide-details rounded
+                                    class="mb-3" :class="{ 'rtl-input': isRtl, 'rtl-select': isRtl }"
+                                    prepend-inner-icon="mdi-web">
+                                </v-select>
                             </v-col>
 
+                            <!-- Theme Field -->
                             <v-col cols="12" sm="6">
-                                <v-select v-model="newTheme" :items="[
-                                    { value: 'light', title: t('light') },
-                                    { value: 'dark', title: t('dark') }
-                                ]" :label="t('Theme')" item-title="title" item-value="value" variant="solo-filled"
-                                    hide-details rounded
-                                    :prepend-inner-icon="newTheme === 'light' ? 'mdi-brightness-7' : 'mdi-brightness-4'"
-                                    class="mb-3" />
+                                <v-select v-model="newTheme" :items="themeOptions" :label="t('Theme')"
+                                    item-title="title" item-value="value" variant="solo-filled" hide-details rounded
+                                    class="mb-3" :class="{ 'rtl-input': isRtl, 'rtl-select': isRtl }"
+                                    :prepend-inner-icon="newTheme === 'light' ? 'mdi-brightness-7' : 'mdi-brightness-4'">
+                                </v-select>
                             </v-col>
 
+                            <!-- Member Since -->
                             <v-col cols="12" class="mt-4">
                                 <div class="text-subtitle-1 font-weight-bold mb-2"
-                                    :class="isRtl ? 'text-right' : 'text-left'">
+                                    :style="{ textAlign: isRtl ? 'right' : 'left' }">
                                     {{ t('Member Since') }}:
                                 </div>
                                 <v-chip color="secondary" label size="large" class="px-4">
@@ -160,33 +161,50 @@ watch(() => settingsStore.currentLocale, formatMemberSince);
 </template>
 
 <style scoped>
-.gap-2 {
-    gap: 8px;
+/* Save button styles */
+.save-btn {
+    justify-content: center;
+    text-transform: none;
 }
 
-/* Save button animation */
-.save-btn-enter-active,
-.save-btn-leave-active {
-    transition: all 0.3s ease;
+.save-fade-enter-active,
+.save-fade-leave-active {
+    transition: opacity .2s ease, transform .2s ease;
 }
 
-.save-btn-enter-from,
-.save-btn-leave-to {
+.save-fade-enter-from,
+.save-fade-leave-to {
     opacity: 0;
-    transform: translateX(-20px);
+    transform: scale(0.9);
 }
 
-.save-btn-enter-to,
-.save-btn-leave-from {
-    opacity: 1;
-    transform: translateX(0);
+/* General RTL typography for all inputs */
+.rtl-input :deep(input),
+.rtl-input :deep(.v-select__selection-text) {
+    direction: rtl;
+    text-align: right;
 }
 
-/* Media query remains for card margin on small screens */
-@media (max-width: 600px) {
-    .v-card {
-        margin-left: 8px !important;
-        margin-right: 8px !important;
-    }
+.rtl-input :deep(.v-label) {
+    right: 16px !important;
+    left: auto !important;
+    transform-origin: top right !important;
+}
+
+.rtl-input :deep(.v-label--active) {
+    transform: translateY(-16px) scale(0.75);
+}
+
+/* RTL alignment for v-select */
+.rtl-select :deep(.v-field__input) {
+    justify-content: flex-end;
+}
+
+.rtl-select :deep(.v-select__selection) {
+    text-align: right !important;
+}
+
+.w-100 {
+    width: 100%;
 }
 </style>
