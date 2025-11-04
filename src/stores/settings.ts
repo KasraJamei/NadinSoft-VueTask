@@ -2,6 +2,8 @@ import { ref, watch, computed } from 'vue';
 import { defineStore } from 'pinia';
 import { useI18n } from 'vue-i18n';
 import type { UserSettings, Theme, Locale } from './types';
+import { useNotificationStore, type NotificationType } from '@/stores/notification';
+import { useI18n as useI18nGlobal } from 'vue-i18n';
 
 const STORAGE_KEY = 'userSettings';
 
@@ -27,6 +29,7 @@ function loadSettings(): UserSettings {
 
 export const useSettingsStore = defineStore('settings', () => {
     const { locale: i18nLocale } = useI18n({ useScope: 'global' });
+    const { t } = useI18nGlobal();
 
     // ────────────────────── STATE ──────────────────────
     const settings = ref<UserSettings>(loadSettings());
@@ -38,6 +41,20 @@ export const useSettingsStore = defineStore('settings', () => {
     const memberSince = computed(() => settings.value.memberSince);
 
     // ───────────────────── ACTIONS ─────────────────────
+
+    // تابع کمکی برای ارسال نوتیفیکیشن تم
+    function _showThemeNotification(themeValue: Theme) {
+        const notify = useNotificationStore();
+
+        const message = t('notification.theme_changed', {
+            theme: t(themeValue)
+        });
+
+        // این خط اکنون درست کار می‌کند
+        const notificationType: NotificationType = themeValue === 'light' ? 'theme_light' : 'theme_dark';
+        notify.info(message, notificationType);
+    }
+
     function updateName(newName: string) {
         const trimmed = newName.trim();
         settings.value.name = trimmed;
@@ -49,7 +66,10 @@ export const useSettingsStore = defineStore('settings', () => {
     }
 
     function updateTheme(newTheme: Theme) {
+        if (settings.value.theme === newTheme) return;
         settings.value.theme = newTheme;
+
+        _showThemeNotification(newTheme);
     }
 
     function updateLocale(newLocale: Locale) {

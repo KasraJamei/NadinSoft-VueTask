@@ -45,12 +45,11 @@ watch(newLocale, (val) => {
 });
 
 watch(newTheme, (val) => {
+    // فراخوانی اکشن store. نوتیفیکیشن از داخل settingsStore ارسال می‌شود.
     settingsStore.updateTheme(val);
+    // به‌روزرسانی تم Vuetify
     theme.global.name.value = val;
-    const isLight = val === 'light';
-
-    const msg = isLight ? t('notification.theme_light') : t('notification.theme_dark');
-    notify.changeTheme(isLight, msg);
+    // ❌ حذف شد: منطق نوتیفیکیشن تم
 });
 
 // --- Detect name change ---
@@ -84,11 +83,9 @@ watch(() => settingsStore.currentLocale, formatMemberSince);
 
 <template>
     <v-container fluid class="pa-4">
-        <v-row class="mb-6">
-            <v-col cols="12" sm="10" md="8" lg="6"
-                :class="isRtl ? 'offset-lg-3 offset-md-2 offset-sm-1 text-right' : 'offset-lg-3 offset-md-2 offset-sm-1 text-left'">
-
-                <h1 class="text-h5 font-weight-bold primary--text d-inline-flex align-center">
+        <v-row justify="center" class="mb-6">
+            <v-col cols="12" class="text-center">
+                <h1 class="text-h5 font-weight-bold primary--text d-flex align-center justify-center">
                     <v-icon size="x-large" :class="isRtl ? 'ml-2' : 'mr-2'">mdi-account-circle</v-icon>
                     {{ t('User Profile') }}
                 </h1>
@@ -96,8 +93,9 @@ watch(() => settingsStore.currentLocale, formatMemberSince);
         </v-row>
 
         <v-row justify="center">
-            <v-col cols="12" sm="10" md="8" lg="6">
-                <v-card elevation="12" class="pa-4 pa-sm-6 rounded-xl">
+            <v-col cols="12">
+                <v-card elevation="12" class="pa-4 pa-sm-6 rounded-xl mx-auto"
+                    :class="{ 'mx-2': $vuetify.display.mobile }" style="max-width: 600px;">
 
                     <v-card-title class="text-h6 font-weight-bold primary--text pb-4"
                         :class="isRtl ? 'text-right' : 'text-left'">
@@ -182,5 +180,13 @@ watch(() => settingsStore.currentLocale, formatMemberSince);
 .save-btn-leave-from {
     opacity: 1;
     transform: translateX(0);
+}
+
+/* Media query remains for card margin on small screens */
+@media (max-width: 600px) {
+    .v-card {
+        margin-left: 8px !important;
+        margin-right: 8px !important;
+    }
 }
 </style>

@@ -3,7 +3,7 @@ import { computed } from 'vue';
 import { useSettingsStore } from '@/stores/settings';
 import { useI18n as useI18nGlobal } from 'vue-i18n';
 import { RouterLink } from 'vue-router';
-// Removed useNotificationStore as it is no longer responsible for sending theme notifications
+// import { useNotificationStore } from '@/stores/notification'; // نیاز به import این نیست
 
 const { t } = useI18nGlobal();
 const settingsStore = useSettingsStore();
@@ -15,16 +15,16 @@ const emit = defineEmits<{
 const currentThemeIsLight = computed(() => settingsStore.currentTheme === 'light');
 
 const handleThemeToggle = () => {
-    // Only toggle the theme in the store. 
-    // The notification logic is handled by the watcher in ProfileView.vue or a central place.
+    // فقط فراخوانی اکشن store. نوتیفیکیشن از داخل settingsStore ارسال می‌شود.
     settingsStore.toggleTheme();
+    // ❌ حذف شد: منطق نوتیفیکیشن تم
 };
 </script>
 
 <template>
     <v-app-bar app color="primary" class="elevation-4">
 
-        <v-app-bar-nav-icon @click="emit('toggle-drawer')" color="white" class="mr-2 d-lg-none"></v-app-bar-nav-icon>
+        <v-app-bar-nav-icon @click="emit('toggle-drawer')" color="white" class="mr-2"></v-app-bar-nav-icon>
 
         <v-btn icon @click="handleThemeToggle" color="white" class="theme-toggle-btn">
             <v-icon>{{ currentThemeIsLight ? 'mdi-brightness-4' : 'mdi-brightness-7' }}</v-icon>
@@ -43,7 +43,6 @@ const handleThemeToggle = () => {
 </template>
 
 <style scoped>
-/* === Perfectly centered title in all screen sizes === */
 .app-bar-title {
     position: absolute;
     left: 50%;
@@ -61,7 +60,6 @@ const handleThemeToggle = () => {
     white-space: nowrap;
 }
 
-/* === Theme button – fixed on the right === */
 .theme-toggle-btn {
     position: absolute;
     right: 12px;
@@ -70,14 +68,6 @@ const handleThemeToggle = () => {
     z-index: 2;
 }
 
-/* === Mobile adjustment: shift title slightly to compensate for drawer icon === */
-@media (max-width: 960px) {
-    .app-bar-title {
-        left: calc(50% + 20px);
-    }
-}
-
-/* Optional: improve visual spacing on very small screens */
 @media (max-width: 360px) {
     .app-bar-title a {
         font-size: 1.1rem;

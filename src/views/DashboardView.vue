@@ -189,11 +189,9 @@ const finalGreetingText = computed(() => typedGreeting.value);
 const getGreetingParts = (text: string, isRtl: boolean) => {
     if (!isRtl) return { rtlPart: text, ltrPart: '' };
 
-    // The i18n key structure is "عبارت فارسی، {name}"
-    const match = text.match(/(.*)[\s،]*(.*)$/); // Adjusted regex for flexibility
+    const match = text.match(/(.*)[\s،]*(.*)$/);
 
     if (match && match[2]) {
-        // FIX: Put the comma with the LTR part for better alignment and remove extra spaces.
         const rtlText = match[1].trim();
         const ltrTextWithComma = `،${match[2].trim()}`;
 
@@ -214,7 +212,7 @@ const getGreetingParts = (text: string, isRtl: boolean) => {
 
                     <v-card-title class="text-h6 font-weight-bold d-flex align-center" :class="[
                         currentTheme === 'dark' ? 'text-blue-lighten-3' : 'primary--text',
-                        isRtl ? 'justify-end' : 'justify-start' // Aligns content to the start/end of the card
+                        isRtl ? 'justify-end' : 'justify-start'
                     ]">
                         <v-icon size="large" :class="isRtl ? 'ml-2' : 'mr-2'"
                             :color="currentTheme === 'dark' ? 'blue-lighten-3' : 'primary'">mdi-format-list-checks</v-icon>
@@ -272,7 +270,8 @@ const getGreetingParts = (text: string, isRtl: boolean) => {
                                     {{ getDashboardWeatherMapping(dashboardWeather?.current_weather?.temperature)?.text
                                     }}
                                     {{ isRtl ? t('weather.in_preposition') : t('in') }}
-                                    <span dir="ltr">{{ displayCityName }}</span> </span>
+                                    <span dir="ltr">{{ displayCityName }}</span>
+                                </span>
                             </p>
                         </div>
                     </v-card-text>
