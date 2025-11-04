@@ -66,18 +66,18 @@ watch(notifications, newNotifs => {
         <transition-group name="notify" tag="div" class="notify-group">
             <div v-for="n in notifications" :key="n.id" class="notify-item" @click="removeManually(n.id)">
                 <v-card class="d-flex align-center pa-3 rounded-pill elevation-8"
+                    :class="isRtl ? 'flex-row-reverse' : ''"
                     :style="{ background: `linear-gradient(${getConfig(n.type).bgGradient}) !important` }">
-                    <v-icon v-if="!isRtl" start size="24" color="white" class="mr-3">
+                    <v-icon size="24" color="white" :class="isRtl ? 'ms-3' : 'me-3'">
                         {{ getConfig(n.type).icon }}
                     </v-icon>
-                    <span class="text-white font-weight-regular">{{ n.message }}</span>
-                    <v-spacer />
-                    <v-btn icon variant="text" size="small" @click.stop="removeManually(n.id)" class="ml-2">
+                    <span class="text-white font-weight-regular flex-grow-1">
+                        {{ n.message }}
+                    </span>
+                    <v-btn icon variant="text" size="small" @click.stop="removeManually(n.id)"
+                        :class="isRtl ? 'me-2' : 'ms-2'">
                         <v-icon color="white" size="20">mdi-close</v-icon>
                     </v-btn>
-                    <v-icon v-if="isRtl" end size="24" color="white" class="ml-3">
-                        {{ getConfig(n.type).icon }}
-                    </v-icon>
                 </v-card>
             </div>
         </transition-group>

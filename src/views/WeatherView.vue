@@ -16,6 +16,8 @@ const isLoading = ref(false);
 const error = ref<string | null>(null);
 const cities = citiesRawData as CityData[];
 
+const isRtl = computed(() => locale.value === 'fa');
+
 const getWeatherMapping = (temp: number) => {
     if (temp > 30) return { icon: 'mdi-weather-sunny', text: t('weather.status_very_hot'), color: 'red', gradient: 'to top right, #f8d49a, #ff9800' };
     if (temp > 20) return { icon: 'mdi-weather-partly-cloudy', text: t('weather.status_warm'), color: 'orange', gradient: 'to top right, #ffb74d, #ffa726' };
@@ -75,7 +77,7 @@ const windSpeed = computed(() => {
     <v-container>
         <div class="d-flex align-center justify-center mb-6">
             <h1 class="text-h4 font-weight-bold primary--text text-center d-flex align-center">
-                <v-icon size="large" class="mr-2">mdi-weather-sunny-alert</v-icon>
+                <v-icon size="large" :class="isRtl ? 'ms-2' : 'me-2'">mdi-weather-sunny-alert</v-icon>
                 {{ t('title.weather_forecast') }}
             </h1>
         </div>
@@ -87,7 +89,7 @@ const windSpeed = computed(() => {
 
             <v-autocomplete v-model="selectedCity" :items="cities" :label="t('weather.enter_city_placeholder')"
                 item-title="city" item-value="city" return-object variant="solo-filled" density="comfortable" clearable
-                rounded="lg" class="mb-4">
+                rounded="lg" class="mb-4" :class="{ 'rtl-input': isRtl }">
                 <template #item="{ props, item }">
                     <v-list-item v-bind="props" :title="item.raw.name_fa || item.raw.city" :subtitle="item.raw.city">
                         <template #prepend>
@@ -99,7 +101,7 @@ const windSpeed = computed(() => {
 
             <v-btn v-if="canSaveCity" @click="saveCityToDashboard" color="primary" variant="flat" rounded="lg" block
                 class="mb-6 elevation-2 font-weight-bold">
-                <v-icon start>mdi-content-save-outline</v-icon>
+                <v-icon :class="isRtl ? 'ms-1' : 'me-1'">mdi-content-save-outline</v-icon>
                 {{ t('button.save_default_city') }}
             </v-btn>
 
@@ -109,34 +111,36 @@ const windSpeed = computed(() => {
             </v-alert>
 
             <v-alert v-else-if="error" type="error" variant="tonal" class="mb-4 rounded-lg">
-                <v-icon start>mdi-alert-circle</v-icon>
+                <v-icon :class="isRtl ? 'ms-2' : 'me-2'">mdi-alert-circle</v-icon>
                 {{ error }}
             </v-alert>
 
             <v-alert v-else-if="!selectedCity" type="warning" variant="tonal" class="mb-4 rounded-lg">
-                <v-icon start>mdi-map-search</v-icon>
+                <v-icon :class="isRtl ? 'ms-2' : 'me-2'">mdi-map-search</v-icon>
                 {{ t('alert.select_city_prompt') }}
             </v-alert>
 
             <v-card v-if="selectedCity && !isLoading && temperature !== null" :color="weatherDisplay.color"
                 :style="`background: linear-gradient(${weatherDisplay.gradient});`"
                 class="pa-6 text-white rounded-xl elevation-12">
-                <div class="text-h5 mb-4 font-weight-medium">{{ cityName }}</div>
+                <div class="text-h5 mb-4 font-weight-medium" :style="{ textAlign: isRtl ? 'right' : 'left' }">
+                    {{ cityName }}
+                </div>
                 <v-row class="align-center">
-                    <v-col cols="6" class="text-left">
+                    <v-col cols="6" :class="isRtl ? 'text-right' : 'text-left'">
                         <v-icon size="80" color="white">{{ weatherDisplay.icon }}</v-icon>
                     </v-col>
-                    <v-col cols="6" class="text-right">
+                    <v-col cols="6" :class="isRtl ? 'text-left' : 'text-right'">
                         <div class="text-h3 font-weight-bold">{{ formattedTemperature }}</div>
                     </v-col>
                 </v-row>
                 <v-divider class="my-4 border-opacity-75"></v-divider>
                 <v-row>
-                    <v-col cols="6" class="text-left">
-                        <v-icon size="small" class="mr-1">mdi-weather-windy</v-icon>
+                    <v-col cols="6" :class="isRtl ? 'text-right' : 'text-left'">
+                        <v-icon size="small" :class="isRtl ? 'ms-1' : 'me-1'">mdi-weather-windy</v-icon>
                         <span class="text-caption font-weight-medium">{{ t('weather.wind') }}: {{ windSpeed }}</span>
                     </v-col>
-                    <v-col cols="6" class="text-right">
+                    <v-col cols="6" :class="isRtl ? 'text-left' : 'text-right'">
                         <v-chip size="default" color="white" variant="outlined" class="font-weight-bold">
                             {{ weatherDisplay.text }}
                         </v-chip>
@@ -147,4 +151,21 @@ const windSpeed = computed(() => {
     </v-container>
 </template>
 
-<style scoped></style>
+<style scoped>
+.rtl-input :deep(input),
+.rtl-input :deep(.v-field__input),
+.rtl-input :deep(.v-select__selection) {
+    direction: rtl;
+    text-align: right;
+}
+
+.rtl-input :deep(.v-label) {
+    right: 16px !important;
+    left: auto !important;
+    transform-origin: top right !important;
+}
+
+.rtl-input :deep(.v-label--active) {
+    transform: translateY(-16px) scale(0.75);
+}
+</style>

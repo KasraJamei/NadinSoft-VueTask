@@ -38,16 +38,14 @@ const formattedTime = computed(() => {
 
 const greetingText = computed(() => {
     const h = currentTime.value.getHours()
-    if (h >= 5 && h < 12) return t('good_morning').split(',')[0].trim()
-    if (h >= 12 && h < 18) return t('good_afternoon').split('،')[0].trim()
-    if (h >= 18 && h < 22) return t('good_evening').split('،')[0].trim()
-    return t('good_night').split('،')[0].trim()
+    const key = h >= 5 && h < 12 ? 'good_morning' :
+        h >= 12 && h < 18 ? 'good_afternoon' :
+            h >= 18 && h < 22 ? 'good_evening' : 'good_night'
+    return t(key)
 })
 
 const comma = computed(() => (isRtl.value ? '، ' : ', '))
-
 const fullText = computed(() => `${greetingText.value}${comma.value}${userName.value}`)
-
 const typedGreeting = ref('')
 let typingTimeout: number | undefined
 
@@ -170,14 +168,14 @@ const goToWeatherPage = () => router.push({ name: 'weather' })
 
 <template>
     <v-container class="text-center">
-        <v-row class="mt-4 justify-center align-stretch">
+        <v-row class="mt-4 justify-center align-stretch" :class="isRtl ? 'flex-row-reverse' : ''">
             <v-col cols="12" sm="4" md="4" lg="3">
                 <v-card elevation="8" class="pa-4 rounded-xl hover-scale dashboard-card mx-auto"
                     :style="{ maxWidth: '320px' }"
                     :color="currentTheme === 'light' ? 'light-blue-lighten-5' : 'surface'">
                     <v-card-title class="text-h6 font-weight-bold d-flex align-center justify-center"
                         :class="currentTheme === 'dark' ? 'text-blue-lighten-3' : 'primary--text'">
-                        <v-icon size="large" class="me-2">mdi-format-list-checks</v-icon>
+                        <v-icon size="large" :class="isRtl ? 'ms-2' : 'me-2'">mdi-format-list-checks</v-icon>
                         {{ t('nav_todos') }}
                     </v-card-title>
                     <v-card-text class="pt-2 text-center">
@@ -193,7 +191,7 @@ const goToWeatherPage = () => router.push({ name: 'weather' })
                         <v-btn :to="{ name: 'todos' }" rounded="lg" size="small" variant="tonal"
                             :color="currentTheme === 'dark' ? 'blue-lighten-3' : 'primary'">
                             {{ t('nav_todos') }}
-                            <v-icon end>mdi-arrow-right-circle</v-icon>
+                            <v-icon :class="isRtl ? 'me-1' : 'ms-1'">mdi-arrow-right-circle</v-icon>
                         </v-btn>
                     </v-card-actions>
                 </v-card>
@@ -204,7 +202,7 @@ const goToWeatherPage = () => router.push({ name: 'weather' })
                     :style="{ maxWidth: '320px' }" :color="currentTheme === 'light' ? 'orange-lighten-5' : 'surface'">
                     <v-card-title class="text-h6 font-weight-bold d-flex align-center justify-center"
                         :class="currentTheme === 'dark' ? 'text-orange-lighten-3' : 'orange-darken-2'">
-                        <v-icon size="large" class="me-2">{{ weatherIcon }}</v-icon>
+                        <v-icon size="large" :class="isRtl ? 'ms-2' : 'me-2'">{{ weatherIcon }}</v-icon>
                         {{ t('nav_weather') }}
                     </v-card-title>
                     <v-card-text class="pt-2 text-center">
@@ -233,7 +231,7 @@ const goToWeatherPage = () => router.push({ name: 'weather' })
                         <v-btn @click="goToWeatherPage" rounded="lg" size="small" variant="tonal"
                             :color="currentTheme === 'dark' ? 'orange-lighten-3' : 'orange-darken-2'">
                             {{ savedCity ? t('nav_weather') : t('button.save_default_city') }}
-                            <v-icon end>mdi-arrow-right-circle</v-icon>
+                            <v-icon :class="isRtl ? 'me-1' : 'ms-1'">mdi-arrow-right-circle</v-icon>
                         </v-btn>
                     </v-card-actions>
                 </v-card>
@@ -244,7 +242,7 @@ const goToWeatherPage = () => router.push({ name: 'weather' })
                     :style="{ maxWidth: '320px' }" :color="currentTheme === 'light' ? 'green-lighten-5' : 'surface'">
                     <v-card-title class="text-h6 font-weight-bold d-flex align-center justify-center"
                         :class="currentTheme === 'dark' ? 'text-green-lighten-3' : 'green-darken-2'">
-                        <v-icon size="large" class="me-2">mdi-cog</v-icon>
+                        <v-icon size="large" :class="isRtl ? 'ms-2' : 'me-2'">mdi-cog</v-icon>
                         {{ t('nav_profile') }}
                     </v-card-title>
                     <v-card-text class="pt-2 text-center">
@@ -260,7 +258,7 @@ const goToWeatherPage = () => router.push({ name: 'weather' })
                         <v-btn :to="{ name: 'profile' }" rounded="lg" size="small" variant="tonal"
                             :color="currentTheme === 'dark' ? 'green-lighten-3' : 'green-darken-2'">
                             {{ t('nav_profile') }}
-                            <v-icon end>mdi-arrow-right-circle</v-icon>
+                            <v-icon :class="isRtl ? 'me-1' : 'ms-1'">mdi-arrow-right-circle</v-icon>
                         </v-btn>
                     </v-card-actions>
                 </v-card>
@@ -271,7 +269,7 @@ const goToWeatherPage = () => router.push({ name: 'weather' })
             <p class="text-h5 text-md-h4 font-weight-black text-medium-emphasis mb-4">
                 {{ formattedTime }}
             </p>
-            <p class="text-h3 text-md-h2 font-weight-medium primary--text d-inline">
+            <p class="text-h3 text-md-h2 font-weight-medium primary--text" :dir="isRtl ? 'rtl' : 'ltr'">
                 <span>{{ typedGreeting }}</span>
                 <span v-if="typedGreeting.length < fullText.length" class="typing-cursor">|</span>
             </p>
@@ -301,7 +299,7 @@ const goToWeatherPage = () => router.push({ name: 'weather' })
     animation: blink 0.7s infinite;
     opacity: 1;
     font-weight: 300;
-    margin-left: 2px;
+    margin-inline-start: 2px;
 }
 
 @keyframes blink {

@@ -8,7 +8,7 @@ const fa = {
     $vuetify: vuetifyFa,
     "in": "در",
 
-    // Time-based Greetings — بدون ویرگول و فاصله اضافه
+    // Time-based Greetings
     welcome: 'خوش آمدید، {name}',
     good_morning: 'صبح بخیر',
     good_afternoon: 'ظهر بخیر',
@@ -18,7 +18,6 @@ const fa = {
     // Menu and Main Titles
     dashboard: 'داشبورد',
     todos: 'لیست کارها',
-    profile: 'پروفایل',
 
     // Navigation Menu
     nav_dashboard: 'داشبورد',
@@ -37,14 +36,16 @@ const fa = {
     'Your Name': 'نام شما',
     'Welcome!': 'خوش آمدید!',
     'Logging Out': 'در حال خروج',
-    'Light': 'روشن',
-    'Dark': 'تیره',
     name: 'نام',
     theme: 'پوسته',
     locale: 'زبان',
     save: 'ذخیره',
+    Save: 'ذخیره',
     light: 'روشن',
     dark: 'تیره',
+    Name: 'نام',
+    Language: 'زبان',
+    Theme: 'پوسته',
     english: 'English',
     farsi: 'فارسی',
     settings_saved: 'تنظیمات با موفقیت ذخیره شد.',
@@ -70,6 +71,10 @@ const fa = {
     "status": {
         "completed": "انجام شده",
         "pending": "در انتظار"
+    },
+    "profile": {
+        "name_label": "نام کاربر",
+        "member_since_label": "عضویت از"
     },
     "todo": {
         "placeholder": "چه کاری باید انجام شود؟",
@@ -124,12 +129,12 @@ const fa = {
         "locale_changed": "زبان به {locale} تغییر یافت",
         "theme_light": "تغییر به حالت روشن",
         "theme_dark": "تغییر به حالت تاریک",
-        "task_added": "کار اضافه شد: {task}",
+        "task_added": "کار «{task}» اضافه شد.",
         "task_already_exists": "این کار از قبل وجود دارد: {task}",
-        "task_updated": "کار به‌روزرسانی شد: {task}",
-        "task_completed": "کار انجام شد: {task}",
-        "task_reopened": "کار دوباره باز شد: {task}",
-        "task_deleted": "کار حذف شد: {task}",
+        "task_updated": "کار «{task}» به‌روزرسانی شد.",
+        "task_completed": "کار «{task}» انجام شد.",
+        "task_reopened": "کار «{task}» دوباره باز شد.",
+        "task_deleted": "کار «{task}» حذف شد.",
         "all_tasks_deleted": "همه کارها حذف شدند",
         "cannot_save_edit": "ذخیره تغییرات امکان‌پذیر نیست. کاری با این نام از قبل وجود دارد.",
         "default_city_saved": "شهر پیش‌فرض ذخیره شد: {city}",
@@ -142,7 +147,7 @@ const en = {
     $vuetify: vuetifyEn,
     "in": "in",
 
-    // Time-based Greetings — بدون ویرگول و فاصله اضافه
+    // Time-based Greetings
     welcome: 'Welcome, {name}',
     good_morning: 'Good morning',
     good_afternoon: 'Good afternoon',
@@ -152,7 +157,6 @@ const en = {
     // Menu and Main Titles
     dashboard: 'Dashboard',
     todos: 'Todos',
-    profile: 'Profile',
 
     // Navigation Menu
     nav_dashboard: 'Dashboard',
@@ -171,14 +175,16 @@ const en = {
     'Your Name': 'Your Name',
     'Welcome!': 'Welcome!',
     'Logging Out': 'Logging Out',
-    'Light': 'Light',
-    'Dark': 'Dark',
     name: 'Name',
     theme: 'Theme',
     locale: 'Language',
     save: 'Save',
+    Save: 'Save',
     light: 'Light',
     dark: 'Dark',
+    Name: 'Name',
+    Language: 'Language',
+    Theme: 'Theme',
     english: 'English',
     farsi: 'فارسی',
     settings_saved: 'Settings saved successfully.',
@@ -204,6 +210,10 @@ const en = {
     "status": {
         "completed": "Completed",
         "pending": "Pending"
+    },
+    "profile": {
+        "name_label": "Name",
+        "member_since_label": "Member Since"
     },
     "todo": {
         "placeholder": "What needs to be done?",
@@ -258,12 +268,12 @@ const en = {
         "locale_changed": "Language changed to: {locale}",
         "theme_light": "Switched to Light Mode",
         "theme_dark": "Switched to Dark Mode",
-        "task_added": "Task added: {task}",
+        "task_added": "Task \"{task}\" has been added.",
         "task_already_exists": "Task already exists: {task}",
-        "task_updated": "Task updated: {task}",
-        "task_completed": "Task completed: {task}",
-        "task_reopened": "Task reopened: {task}",
-        "task_deleted": "Task deleted: {task}",
+        "task_updated": "Task \"{task}\" has been updated.",
+        "task_completed": "Task \"{task}\" has been completed.",
+        "task_reopened": "Task \"{task}\" has been reopened.",
+        "task_deleted": "Task \"{task}\" has been deleted.",
         "all_tasks_deleted": "All tasks deleted",
         "cannot_save_edit": "Cannot save changes. A todo with that name already exists.",
         "default_city_saved": "Default city saved: {city}",
