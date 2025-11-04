@@ -5,10 +5,12 @@ import { useI18n } from 'vue-i18n';
 import { useTheme } from 'vuetify';
 import { useNotificationStore } from '@/stores/notification';
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const settingsStore = useSettingsStore();
 const theme = useTheme();
 const notify = useNotificationStore();
+
+const isRtl = computed(() => locale.value === 'fa');
 
 // --- Local refs ---
 const newUserName = ref(settingsStore.userName);
@@ -42,15 +44,12 @@ watch(newLocale, (val) => {
     notify.changeLocale(t('notification.locale_changed', { locale: localeName }));
 });
 
-// Theme notification is triggered here (centralized logic)
 watch(newTheme, (val) => {
+    // فراخوانی اکشن store. نوتیفیکیشن از داخل settingsStore ارسال می‌شود.
     settingsStore.updateTheme(val);
+    // به‌روزرسانی تم Vuetify
     theme.global.name.value = val;
-    const isLight = val === 'light';
-
-    // Use i18n keys for complete message
-    const msg = isLight ? t('notification.theme_light') : t('notification.theme_dark');
-    notify.changeTheme(isLight, msg);
+    // ❌ حذف شد: منطق نوتیفیکیشن تم
 });
 
 // --- Detect name change ---
@@ -68,23 +67,18 @@ function formatMemberSince() {
     }
 
     const date = new Date(settingsStore.memberSince);
-    // Use correct locale string for date formatting
     const localeString = settingsStore.currentLocale === 'fa' ? 'fa-IR' : 'en-US';
 
     const dateOptions: Intl.DateTimeFormatOptions = { year: 'numeric', month: '2-digit', day: '2-digit' };
     const timeOptions: Intl.DateTimeFormatOptions = { hour: '2-digit', minute: '2-digit', hour12: false };
 
-    const dateStr = date.toLocaleDateString(localeString, dateOptions);
-    const timeStr = date.toLocaleTimeString(localeString, timeOptions);
-
-    // Format is 'Date, Time'
-    memberSinceFormatted.value = `${dateStr}, ${timeStr}`;
+    const combinedOptions: Intl.DateTimeFormatOptions = { ...dateOptions, ...timeOptions, hour12: false };
+    memberSinceFormatted.value = date.toLocaleString(localeString, combinedOptions);
 }
 
 onMounted(formatMemberSince);
 watch(() => settingsStore.memberSince, formatMemberSince);
-// Watch locale to reformat the date/time string when language changes
-watch(() => settingsStore.currentLocale, formatMemberSince); 
+watch(() => settingsStore.currentLocale, formatMemberSince);
 </script>
 
 <template>
@@ -92,7 +86,7 @@ watch(() => settingsStore.currentLocale, formatMemberSince);
         <v-row justify="center" class="mb-6">
             <v-col cols="12" class="text-center">
                 <h1 class="text-h5 font-weight-bold primary--text d-flex align-center justify-center">
-                    <v-icon size="x-large" class="mr-2">mdi-account-circle</v-icon>
+                    <v-icon size="x-large" :class="isRtl ? 'ml-2' : 'mr-2'">mdi-account-circle</v-icon>
                     {{ t('User Profile') }}
                 </h1>
             </v-col>
@@ -102,7 +96,9 @@ watch(() => settingsStore.currentLocale, formatMemberSince);
             <v-col cols="12">
                 <v-card elevation="12" class="pa-4 pa-sm-6 rounded-xl mx-auto"
                     :class="{ 'mx-2': $vuetify.display.mobile }" style="max-width: 600px;">
-                    <v-card-title class="text-h6 font-weight-bold primary--text pb-4">
+
+                    <v-card-title class="text-h6 font-weight-bold primary--text pb-4"
+                        :class="isRtl ? 'text-right' : 'text-left'">
                         {{ t('Account Details') }}
                     </v-card-title>
 
@@ -110,6 +106,7 @@ watch(() => settingsStore.currentLocale, formatMemberSince);
 
                     <v-card-text class="px-0">
                         <v-row dense>
+
                             <v-col cols="12">
                                 <div class="d-flex align-center gap-2">
                                     <v-text-field v-model="newUserName" :label="t('Name')" variant="solo-filled"
@@ -118,9 +115,9 @@ watch(() => settingsStore.currentLocale, formatMemberSince);
 
                                     <transition name="save-btn">
                                         <v-btn v-show="showSaveButton" color="primary" size="large" @click="saveName"
-                                            class="mb-3 save-btn" elevation="4">
+                                            class="mb-3 save-btn flex-shrink-0" elevation="4">
                                             {{ t('Save') }}
-                                            <v-icon end>mdi-content-save</v-icon>
+                                            <v-icon :start="isRtl" :end="!isRtl">mdi-content-save</v-icon>
                                         </v-btn>
                                     </transition>
                                 </div>
@@ -145,7 +142,8 @@ watch(() => settingsStore.currentLocale, formatMemberSince);
                             </v-col>
 
                             <v-col cols="12" class="mt-4">
-                                <div class="text-subtitle-1 font-weight-bold mb-2">
+                                <div class="text-subtitle-1 font-weight-bold mb-2"
+                                    :class="isRtl ? 'text-right' : 'text-left'">
                                     {{ t('Member Since') }}:
                                 </div>
                                 <v-chip color="secondary" label size="large" class="px-4">
@@ -184,6 +182,7 @@ watch(() => settingsStore.currentLocale, formatMemberSince);
     transform: translateX(0);
 }
 
+/* Media query remains for card margin on small screens */
 @media (max-width: 600px) {
     .v-card {
         margin-left: 8px !important;

@@ -1,17 +1,30 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useSettingsStore } from '@/stores/settings';
 import { useI18n as useI18nGlobal } from 'vue-i18n';
-import { useTheme } from 'vuetify';
+import { useTheme, useDisplay } from 'vuetify';
 
+// مدل برای باز و بسته شدن سایدبار
 const drawerModel = defineModel<boolean>('drawer', { required: true });
 
-const { t } = useI18nGlobal();
+const { t, locale } = useI18nGlobal();
 const vuetifyTheme = useTheme();
+const display = useDisplay();
 
 const settingsStore = useSettingsStore();
 
-// Map navigation titles to i18n keys
+const isRtl = computed(() => locale.value === 'fa');
+
+// ✅ FIX 2: کنترل Modal بودن بر اساس سایز صفحه
+// اگر صفحه کوچک باشد (smAndDown)، Modal=true (پشت صفحه غیرفعال)
+const isModal = computed(() => display.smAndDown.value);
+
+// همیشه Temporary و Permanent=false تا کنترل با v-model باشد و محتوای اصلی را جابجا نکند.
+const isPermanent = computed(() => false);
+const isTemporary = computed(() => true);
+
+const sidebarLocation = computed(() => isRtl.value ? 'right' : 'left');
+
 const navItems = computed(() => [
     { title: t('nav_dashboard'), icon: 'mdi-view-dashboard', to: { name: 'dashboard' } },
     { title: t('nav_todos'), icon: 'mdi-format-list-checks', to: { name: 'todos' } },
@@ -23,14 +36,18 @@ const isLightTheme = computed(() => vuetifyTheme.global.name.value === 'light');
 </script>
 
 <template>
-    <v-navigation-drawer v-model="drawerModel" app :temporary="$vuetify.display.mdAndDown" width="250"
-        :color="isLightTheme ? 'white' : undefined">
+    <v-navigation-drawer v-model="drawerModel" :temporary="isTemporary" :permanent="isPermanent" width="250"
+        :modal="isModal" :color="isLightTheme ? 'white' : undefined" :location="sidebarLocation" disable-resize-watcher
+        disable-route-watcher>
         <v-list class="pa-2">
+
             <v-list-item :title="settingsStore.userName" :subtitle="t('User Profile')"
-                class="mb-4 text-center rounded-lg elevation-2 mt-2"
-                :class="isLightTheme ? 'bg-grey-lighten-4' : 'bg-surface'" :to="{ name: 'profile' }">
+                class="mb-4 rounded-lg elevation-2 mt-2" :class="[
+                    isLightTheme ? 'bg-grey-lighten-4' : 'bg-surface',
+                    isRtl ? 'text-right' : 'text-left'
+                ]" :to="{ name: 'profile' }">
                 <template v-slot:prepend>
-                    <v-avatar color="primary" class="ml-2">
+                    <v-avatar color="primary" :class="isRtl ? 'mr-2' : 'ml-2'">
                         <v-icon color="white">mdi-account-circle</v-icon>
                     </v-avatar>
                 </template>

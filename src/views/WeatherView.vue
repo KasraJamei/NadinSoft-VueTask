@@ -99,8 +99,8 @@ const windSpeed = computed(() => {
 
 <template>
     <v-container>
-        <div class="d-flex align-center mb-6">
-            <h1 class="text-h4 font-weight-bold primary--text">
+        <div class="d-flex align-center justify-center mb-6">
+            <h1 class="text-h4 font-weight-bold primary--text text-center d-flex align-center">
                 <v-icon size="large" class="mr-2">mdi-weather-sunny-alert</v-icon>
                 {{ t('title.weather_forecast') }}
             </h1>

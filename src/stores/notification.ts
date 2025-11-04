@@ -1,43 +1,75 @@
-// src/stores/notification.ts
+import { ref, watch, computed } from 'vue'; // 🟢 'computed' اضافه شد
 import { defineStore } from 'pinia';
-import { ref } from 'vue';
+
+// فرض می‌کنیم انواع نوتیفیکیشن شما شامل 'info', 'success', 'error' و انواع کاستوم تم باشد
+export type NotificationType = 'info' | 'success' | 'error' | 'theme_light' | 'theme_dark' | 'name_update' | 'locale_change';
 
 export interface Notification {
     id: number;
     message: string;
-    type: 'add' | 'edit' | 'complete' | 'reopen' | 'delete' | 'name' | 'locale' | 'theme_light' | 'theme_dark' | 'city' | 'error';
-    timeout?: number;
+    type: NotificationType;
+    duration: number;
 }
 
+const DEFAULT_DURATION = 5000; // 5 ثانیه
+
 export const useNotificationStore = defineStore('notification', () => {
+    // ────────────────────── STATE ──────────────────────
     const notifications = ref<Notification[]>([]);
-    let idCounter = 0;
 
-    const add = (message: string, type: Notification['type'], timeout = 3500) => {
-        const id = ++idCounter;
-        notifications.value.push({ id, message, type, timeout });
-        if (timeout > 0) setTimeout(() => remove(id), timeout);
-    };
+    // ───────────────────── INTERNAL ────────────────────
+    function _autoRemove(id: number) {
+        // Find the notification to get its duration
+        const notif = notifications.value.find(n => n.id === id);
+        const duration = notif ? notif.duration : DEFAULT_DURATION;
 
-    const remove = (id: number) => {
-        notifications.value = notifications.value.filter(n => n.id !== id);
-    };
+        setTimeout(() => {
+            notifications.value = notifications.value.filter(n => n.id !== id);
+        }, duration);
+    }
 
-    const addTodo = (msg: string) => add(msg, 'add');
-    const editTodo = (msg: string) => add(msg, 'edit');
-    const completeTodo = (msg: string) => add(msg, 'complete');
-    const reopenTodo = (msg: string) => add(msg, 'reopen');
-    const deleteTodo = (msg: string) => add(msg, 'delete');
-    const updateName = (msg: string) => add(msg, 'name');
-    const changeLocale = (msg: string) => add(msg, 'locale');
-    const changeTheme = (light: boolean, msg: string) => add(msg, light ? 'theme_light' : 'theme_dark');
-    const saveCity = (msg: string) => add(msg, 'city');
-    const error = (msg: string) => add(msg, 'error', 5000);
+    // ───────────────────── ACTIONS ─────────────────────
+
+    // 🟢 تغییر ضروری: اضافه کردن آرگومان اختیاری 'type' به متد info
+    function info(message: string, type: NotificationType = 'info', duration: number = DEFAULT_DURATION) {
+        const newNotification: Notification = {
+            id: Date.now(),
+            message,
+            type,
+            duration,
+        };
+        notifications.value.push(newNotification);
+        _autoRemove(newNotification.id);
+    }
+
+    function success(message: string, duration: number = DEFAULT_DURATION) {
+        info(message, 'success', duration);
+    }
+
+    function error(message: string, duration: number = DEFAULT_DURATION) {
+        info(message, 'error', duration);
+    }
+
+    // متدهای اختصاصی که در ProfileView استفاده شده‌اند
+    function updateName(message: string, duration: number = DEFAULT_DURATION) {
+        info(message, 'name_update', duration);
+    }
+
+    function changeLocale(message: string, duration: number = DEFAULT_DURATION) {
+        info(message, 'locale_change', duration);
+    }
+
+
+    // ───────────────────── GETTERS ─────────────────────
+    const currentNotifications = computed(() => notifications.value);
+
 
     return {
-        notifications,
-        add, remove,
-        addTodo, editTodo, completeTodo, reopenTodo, deleteTodo,
-        updateName, changeLocale, changeTheme, saveCity, error
+        currentNotifications,
+        info,
+        success,
+        error,
+        updateName,
+        changeLocale,
     };
 });

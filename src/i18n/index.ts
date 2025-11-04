@@ -119,6 +119,7 @@ const fa = {
         "in_preposition": "در"
     },
     "notification": {
+        "theme_changed": "پوسته به {theme} تغییر یافت", // FIXED: Added missing key
         "name_updated": "نام به {name} تغییر کرد",
         "locale_changed": "زبان به {locale} تغییر یافت",
         "theme_light": "تغییر به حالت روشن",
@@ -252,6 +253,7 @@ const en = {
         "in_preposition": "in"
     },
     "notification": {
+        "theme_changed": "Theme changed to: {theme}", // FIXED: Added missing key
         "name_updated": "Name updated to: {name}",
         "locale_changed": "Language changed to: {locale}",
         "theme_light": "Switched to Light Mode",
