@@ -1,27 +1,27 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 import { useSettingsStore } from '@/stores/settings';
-import { useI18n as useI18nGlobal } from 'vue-i18n';
+import { useI18n } from 'vue-i18n';
 import { useTheme, useDisplay } from 'vuetify';
 
-// مدل برای باز و بسته شدن سایدبار
+// v-model for drawer
 const drawerModel = defineModel<boolean>('drawer', { required: true });
 
-const { t, locale } = useI18nGlobal();
+const { t, locale } = useI18n();
 const vuetifyTheme = useTheme();
 const display = useDisplay();
-
 const settingsStore = useSettingsStore();
 
 const isRtl = computed(() => locale.value === 'fa');
+const isMobile = computed(() => display.smAndDown.value);
 
-// ✅ FIX 2: کنترل Modal بودن بر اساس سایز صفحه
-// اگر صفحه کوچک باشد (smAndDown)، Modal=true (پشت صفحه غیرفعال)
-const isModal = computed(() => display.smAndDown.value);
+// Modal فقط در موبایل
+const isModal = computed(() => isMobile.value);
 
-// همیشه Temporary و Permanent=false تا کنترل با v-model باشد و محتوای اصلی را جابجا نکند.
-const isPermanent = computed(() => false);
-const isTemporary = computed(() => true);
+// در موبایل: temporary (مودال با overlay)
+// در دسکتاپ: permanent (بدون overlay، همیشه باز/بسته با v-model)
+const isTemporary = computed(() => isMobile.value);
+const isPermanent = computed(() => !isMobile.value);
 
 const sidebarLocation = computed(() => isRtl.value ? 'right' : 'left');
 
@@ -36,16 +36,14 @@ const isLightTheme = computed(() => vuetifyTheme.global.name.value === 'light');
 </script>
 
 <template>
-    <v-navigation-drawer v-model="drawerModel" :temporary="isTemporary" :permanent="isPermanent" width="250"
-        :modal="isModal" :color="isLightTheme ? 'white' : undefined" :location="sidebarLocation" disable-resize-watcher
+    <v-navigation-drawer v-model="drawerModel" :temporary="isTemporary" :permanent="isPermanent" :modal="isModal"
+        width="250" :color="isLightTheme ? 'white' : undefined" :location="sidebarLocation" disable-resize-watcher
         disable-route-watcher>
         <v-list class="pa-2">
-
             <v-list-item :title="settingsStore.userName" :subtitle="t('User Profile')"
-                class="mb-4 rounded-lg elevation-2 mt-2" :class="[
-                    isLightTheme ? 'bg-grey-lighten-4' : 'bg-surface',
-                    isRtl ? 'text-right' : 'text-left'
-                ]" :to="{ name: 'profile' }">
+                class="mb-4 rounded-lg elevation-2 mt-2"
+                :class="[isLightTheme ? 'bg-grey-lighten-4' : 'bg-surface', isRtl ? 'text-right' : 'text-left']"
+                :to="{ name: 'profile' }">
                 <template v-slot:prepend>
                     <v-avatar color="primary" :class="isRtl ? 'mr-2' : 'ml-2'">
                         <v-icon color="white">mdi-account-circle</v-icon>
@@ -63,4 +61,9 @@ const isLightTheme = computed(() => vuetifyTheme.global.name.value === 'light');
     </v-navigation-drawer>
 </template>
 
-<style scoped></style>
+<style scoped>
+/* Optional: smooth transition when opening/closing */
+.v-navigation-drawer {
+    transition: transform 0.3s ease;
+}
+</style>

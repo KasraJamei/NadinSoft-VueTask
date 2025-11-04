@@ -1,18 +1,19 @@
-import { createI18n, type I18nOptions } from 'vue-i18n';
-import { en as vuetifyEn } from 'vuetify/locale';
-import { fa as vuetifyFa } from 'vuetify/locale';
-
+// src/i18n/index.ts
+import { createI18n, type I18nOptions } from 'vue-i18n'
+import { en as vuetifyEn } from 'vuetify/locale'
+import { fa as vuetifyFa } from 'vuetify/locale'
 
 // Farsi (Persian) Messages
 const fa = {
     $vuetify: vuetifyFa,
     "in": "در",
 
-    // Time-based Greetings: Structured to work with the RTL/LTR splitting logic in DashboardView.vue
+    // Time-based Greetings — بدون ویرگول و فاصله اضافه
     welcome: 'خوش آمدید، {name}',
-    good_morning: 'صبح بخیر، {name}',
-    good_afternoon: 'عصر بخیر، {name}',
-    good_evening: 'شب بخیر، {name}',
+    good_morning: 'صبح بخیر',
+    good_afternoon: 'ظهر بخیر',
+    good_evening: 'عصر بخیر',
+    good_night: 'شب بخیر',
 
     // Menu and Main Titles
     dashboard: 'داشبورد',
@@ -25,7 +26,7 @@ const fa = {
     nav_weather: 'آب و هوا',
     nav_profile: 'پروفایل',
 
-    // Settings (ProfileView & Modals)
+    // Settings
     'User Profile': 'پروفایل کاربری',
     'Account Details': 'جزئیات حساب',
     'Member Since': 'عضویت از',
@@ -38,7 +39,6 @@ const fa = {
     'Logging Out': 'در حال خروج',
     'Light': 'روشن',
     'Dark': 'تیره',
-
     name: 'نام',
     theme: 'پوسته',
     locale: 'زبان',
@@ -49,7 +49,7 @@ const fa = {
     farsi: 'فارسی',
     settings_saved: 'تنظیمات با موفقیت ذخیره شد.',
 
-    // Application Keys (Todos, Weather, Dialogs, Alerts, Notifications)
+    // Application Keys
     "title": {
         "todo_list": "لیست کارها (TODO)",
         "weather_forecast": "پیش‌بینی آب و هوا"
@@ -119,7 +119,7 @@ const fa = {
         "in_preposition": "در"
     },
     "notification": {
-        "theme_changed": "پوسته به {theme} تغییر یافت", // FIXED: Added missing key
+        "theme_changed": "پوسته به {theme} تغییر یافت",
         "name_updated": "نام به {name} تغییر کرد",
         "locale_changed": "زبان به {locale} تغییر یافت",
         "theme_light": "تغییر به حالت روشن",
@@ -135,18 +135,19 @@ const fa = {
         "default_city_saved": "شهر پیش‌فرض ذخیره شد: {city}",
         "successfully_logged_out": "با موفقیت خارج شدید."
     }
-};
+}
 
 // English Messages
 const en = {
     $vuetify: vuetifyEn,
     "in": "in",
 
-    // Time-based Greetings
+    // Time-based Greetings — بدون ویرگول و فاصله اضافه
     welcome: 'Welcome, {name}',
-    good_morning: 'Good morning, {name}',
-    good_afternoon: 'Good afternoon, {name}',
-    good_evening: 'Good evening, {name}',
+    good_morning: 'Good morning',
+    good_afternoon: 'Good afternoon',
+    good_evening: 'Good evening',
+    good_night: 'Good night',
 
     // Menu and Main Titles
     dashboard: 'Dashboard',
@@ -159,7 +160,7 @@ const en = {
     nav_weather: 'Weather',
     nav_profile: 'Profile',
 
-    // Settings (ProfileView & Modals)
+    // Settings
     'User Profile': 'User Profile',
     'Account Details': 'Account Details',
     'Member Since': 'Member Since',
@@ -172,7 +173,6 @@ const en = {
     'Logging Out': 'Logging Out',
     'Light': 'Light',
     'Dark': 'Dark',
-
     name: 'Name',
     theme: 'Theme',
     locale: 'Language',
@@ -183,7 +183,7 @@ const en = {
     farsi: 'فارسی',
     settings_saved: 'Settings saved successfully.',
 
-    // Application Keys (Todos, Weather, Dialogs, Alerts, Notifications)
+    // Application Keys
     "title": {
         "todo_list": "TODO List",
         "weather_forecast": "Weather Forecast"
@@ -253,7 +253,7 @@ const en = {
         "in_preposition": "in"
     },
     "notification": {
-        "theme_changed": "Theme changed to: {theme}", // FIXED: Added missing key
+        "theme_changed": "Theme changed to: {theme}",
         "name_updated": "Name updated to: {name}",
         "locale_changed": "Language changed to: {locale}",
         "theme_light": "Switched to Light Mode",
@@ -269,8 +269,7 @@ const en = {
         "default_city_saved": "Default city saved: {city}",
         "successfully_logged_out": "Successfully logged out."
     }
-};
-
+}
 
 const i18n = createI18n({
     locale: 'en',
@@ -281,6 +280,6 @@ const i18n = createI18n({
     },
     legacy: false,
     globalInjection: true,
-} as I18nOptions);
+} as I18nOptions)
 
-export default i18n;
+export default i18n

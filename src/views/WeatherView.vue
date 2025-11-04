@@ -11,14 +11,11 @@ const weatherStore = useWeatherStore();
 const notify = useNotificationStore();
 
 const selectedCity = ref<CityData | null>(weatherStore.getSavedCity);
-
 const weatherData = ref<any>(null);
 const isLoading = ref(false);
 const error = ref<string | null>(null);
-
 const cities = citiesRawData as CityData[];
 
-// Mapping function with translation
 const getWeatherMapping = (temp: number) => {
     if (temp > 30) return { icon: 'mdi-weather-sunny', text: t('weather.status_very_hot'), color: 'red', gradient: 'to top right, #f8d49a, #ff9800' };
     if (temp > 20) return { icon: 'mdi-weather-partly-cloudy', text: t('weather.status_warm'), color: 'orange', gradient: 'to top right, #ffb74d, #ffa726' };
@@ -27,73 +24,50 @@ const getWeatherMapping = (temp: number) => {
     return { icon: 'mdi-weather-snowy', text: t('weather.status_cold'), color: 'cyan', gradient: 'to top right, #80deea, #4dd0e1' };
 };
 
-// Fetch function
 async function fetchWeather(city: CityData) {
     isLoading.value = true;
     error.value = null;
     weatherData.value = null;
-
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lng}&current_weather=true`;
-
     try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error('Failed to fetch weather data.');
-        const data = await response.json();
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('Network error');
+        const data = await res.json();
         weatherData.value = data;
-    } catch (err: any) {
-        console.error('Weather API Error:', err);
-        // Use translation key
+    } catch (e) {
         error.value = t('alert.error_fetching_weather');
     } finally {
         isLoading.value = false;
     }
 }
 
-watch(selectedCity, (newCity) => {
-    if (newCity) fetchWeather(newCity);
+watch(selectedCity, (city) => {
+    if (city) fetchWeather(city);
     else weatherData.value = null;
 }, { immediate: true });
 
 const saveCityToDashboard = () => {
     if (selectedCity.value) {
         weatherStore.saveWeatherCity(selectedCity.value);
-        // Always use the English city name for the notification message display
-        const cityNameDisplay = selectedCity.value.city;
-        // Use translation key
-        notify.saveCity(t('notification.default_city_saved', { city: cityNameDisplay }));
+        const name = selectedCity.value.city;
+        notify.success(t('notification.default_city_saved', { city: name }));
     }
 };
 
 const canSaveCity = computed(() => !!selectedCity.value);
-
 const cityName = computed(() => {
-    // Keep the logic here to display the Farsi name if available and locale is 'fa' for the main card, 
-    // but the selector below will use English name for input.
-    return selectedCity.value
-        ? (locale.value === 'fa' && selectedCity.value.name_fa ? selectedCity.value.name_fa : selectedCity.value.city)
-        : '';
+    if (!selectedCity.value) return '';
+    return locale.value === 'fa' && selectedCity.value.name_fa ? selectedCity.value.name_fa : selectedCity.value.city;
 });
-
-const temperature = computed(() => {
-    return weatherData.value?.current_weather?.temperature !== undefined
-        ? weatherData.value.current_weather.temperature
-        : null;
-});
-
+const temperature = computed(() => weatherData.value?.current_weather?.temperature ?? null);
 const weatherDisplay = computed(() => {
     if (temperature.value !== null) return getWeatherMapping(temperature.value);
-    // Use translation key
     return { icon: 'mdi-cloud-question', text: t('weather.status_select_city'), color: 'grey', gradient: 'to top right, #e0e0e0, #bdbdbd' };
 });
-
-const formattedTemperature = computed(() => {
-    return temperature.value !== null ? `${temperature.value} °C` : '--';
-});
-
+const formattedTemperature = computed(() => temperature.value !== null ? `${temperature.value} °C` : '--');
 const windSpeed = computed(() => {
-    return weatherData.value?.current_weather?.windspeed !== undefined
-        ? `${weatherData.value.current_weather.windspeed} km/h`
-        : '--';
+    const w = weatherData.value?.current_weather?.windspeed;
+    return w !== undefined ? `${w} km/h` : '--';
 });
 </script>
 
@@ -114,9 +88,9 @@ const windSpeed = computed(() => {
             <v-autocomplete v-model="selectedCity" :items="cities" :label="t('weather.enter_city_placeholder')"
                 item-title="city" item-value="city" return-object variant="solo-filled" density="comfortable" clearable
                 rounded="lg" class="mb-4">
-                <template v-slot:item="{ props, item }">
+                <template #item="{ props, item }">
                     <v-list-item v-bind="props" :title="item.raw.name_fa || item.raw.city" :subtitle="item.raw.city">
-                        <template v-slot:prepend>
+                        <template #prepend>
                             <v-icon color="primary">mdi-map-marker-outline</v-icon>
                         </template>
                     </v-list-item>
@@ -133,10 +107,12 @@ const windSpeed = computed(() => {
                 <v-progress-linear indeterminate color="info" class="mb-2"></v-progress-linear>
                 {{ t('alert.loading_weather') }}
             </v-alert>
+
             <v-alert v-else-if="error" type="error" variant="tonal" class="mb-4 rounded-lg">
                 <v-icon start>mdi-alert-circle</v-icon>
                 {{ error }}
             </v-alert>
+
             <v-alert v-else-if="!selectedCity" type="warning" variant="tonal" class="mb-4 rounded-lg">
                 <v-icon start>mdi-map-search</v-icon>
                 {{ t('alert.select_city_prompt') }}
@@ -146,26 +122,19 @@ const windSpeed = computed(() => {
                 :style="`background: linear-gradient(${weatherDisplay.gradient});`"
                 class="pa-6 text-white rounded-xl elevation-12">
                 <div class="text-h5 mb-4 font-weight-medium">{{ cityName }}</div>
-
                 <v-row class="align-center">
                     <v-col cols="6" class="text-left">
                         <v-icon size="80" color="white">{{ weatherDisplay.icon }}</v-icon>
                     </v-col>
                     <v-col cols="6" class="text-right">
-                        <div class="text-h3 font-weight-bold">
-                            {{ formattedTemperature }}
-                        </div>
+                        <div class="text-h3 font-weight-bold">{{ formattedTemperature }}</div>
                     </v-col>
                 </v-row>
-
                 <v-divider class="my-4 border-opacity-75"></v-divider>
-
                 <v-row>
                     <v-col cols="6" class="text-left">
                         <v-icon size="small" class="mr-1">mdi-weather-windy</v-icon>
-                        <span class="text-caption font-weight-medium">{{ t('weather.wind') }}:
-                            {{ windSpeed
-                            }}</span>
+                        <span class="text-caption font-weight-medium">{{ t('weather.wind') }}: {{ windSpeed }}</span>
                     </v-col>
                     <v-col cols="6" class="text-right">
                         <v-chip size="default" color="white" variant="outlined" class="font-weight-bold">

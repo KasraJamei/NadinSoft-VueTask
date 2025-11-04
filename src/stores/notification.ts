@@ -1,8 +1,10 @@
-import { ref, watch, computed } from 'vue'; // 🟢 'computed' اضافه شد
+import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
 
-// فرض می‌کنیم انواع نوتیفیکیشن شما شامل 'info', 'success', 'error' و انواع کاستوم تم باشد
-export type NotificationType = 'info' | 'success' | 'error' | 'theme_light' | 'theme_dark' | 'name_update' | 'locale_change';
+export type NotificationType =
+    | 'info' | 'success' | 'error'
+    | 'add' | 'edit' | 'complete' | 'reopen' | 'delete'
+    | 'theme_light' | 'theme_dark' | 'name_update' | 'locale_change';
 
 export interface Notification {
     id: number;
@@ -11,65 +13,50 @@ export interface Notification {
     duration: number;
 }
 
-const DEFAULT_DURATION = 5000; // 5 ثانیه
+const DEFAULT_DURATION = 5000;
 
 export const useNotificationStore = defineStore('notification', () => {
-    // ────────────────────── STATE ──────────────────────
     const notifications = ref<Notification[]>([]);
 
-    // ───────────────────── INTERNAL ────────────────────
     function _autoRemove(id: number) {
-        // Find the notification to get its duration
         const notif = notifications.value.find(n => n.id === id);
         const duration = notif ? notif.duration : DEFAULT_DURATION;
-
         setTimeout(() => {
             notifications.value = notifications.value.filter(n => n.id !== id);
         }, duration);
     }
 
-    // ───────────────────── ACTIONS ─────────────────────
-
-    // 🟢 تغییر ضروری: اضافه کردن آرگومان اختیاری 'type' به متد info
-    function info(message: string, type: NotificationType = 'info', duration: number = DEFAULT_DURATION) {
-        const newNotification: Notification = {
-            id: Date.now(),
-            message,
-            type,
-            duration,
-        };
-        notifications.value.push(newNotification);
-        _autoRemove(newNotification.id);
+    function info(message: string, type: NotificationType = 'info', duration = DEFAULT_DURATION) {
+        const n: Notification = { id: Date.now(), message, type, duration };
+        notifications.value.push(n);
+        _autoRemove(n.id);
     }
 
-    function success(message: string, duration: number = DEFAULT_DURATION) {
-        info(message, 'success', duration);
+    function success(message: string, duration = DEFAULT_DURATION) { info(message, 'success', duration); }
+    function error(message: string, duration = DEFAULT_DURATION) { info(message, 'error', duration); }
+
+    // Todo-specific shortcuts
+    function addTodo(message: string) { info(message, 'add'); }
+    function editTodo(message: string) { info(message, 'edit'); }
+    function completeTodo(message: string) { info(message, 'complete'); }
+    function reopenTodo(message: string) { info(message, 'reopen'); }
+    function deleteTodo(message: string) { info(message, 'delete'); }
+
+    // Settings shortcuts
+    function updateName(message: string) { info(message, 'name_update'); }
+    function changeLocale(message: string) { info(message, 'locale_change'); }
+
+    function remove(id: number) {
+        notifications.value = notifications.value.filter(n => n.id !== id);
     }
 
-    function error(message: string, duration: number = DEFAULT_DURATION) {
-        info(message, 'error', duration);
-    }
-
-    // متدهای اختصاصی که در ProfileView استفاده شده‌اند
-    function updateName(message: string, duration: number = DEFAULT_DURATION) {
-        info(message, 'name_update', duration);
-    }
-
-    function changeLocale(message: string, duration: number = DEFAULT_DURATION) {
-        info(message, 'locale_change', duration);
-    }
-
-
-    // ───────────────────── GETTERS ─────────────────────
     const currentNotifications = computed(() => notifications.value);
-
 
     return {
         currentNotifications,
-        info,
-        success,
-        error,
-        updateName,
-        changeLocale,
+        info, success, error,
+        addTodo, editTodo, completeTodo, reopenTodo, deleteTodo,
+        updateName, changeLocale,
+        remove,
     };
 });

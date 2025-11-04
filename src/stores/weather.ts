@@ -1,7 +1,5 @@
-// src/stores/weather.ts
-
 import { defineStore } from 'pinia';
-import type { CityData } from './types'; 
+import type { CityData } from './types';
 
 const LOCAL_STORAGE_KEY = 'weather_store_city';
 
@@ -9,48 +7,34 @@ interface WeatherState {
     savedCity: CityData | null;
 }
 
-// تابع کمکی برای بارگذاری وضعیت از localStorage
 const loadState = (): WeatherState => {
     try {
-        const storedData = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (storedData) {
-            return { savedCity: JSON.parse(storedData) as CityData };
-        }
-    } catch (error) {
-        console.error("Could not load weather state from localStorage:", error);
+        const data = localStorage.getItem(LOCAL_STORAGE_KEY);
+        return data ? { savedCity: JSON.parse(data) as CityData } : { savedCity: null };
+    } catch (e) {
+        console.error('Failed to load weather city', e);
+        return { savedCity: null };
     }
-    return { savedCity: null };
 };
 
-// تابع کمکی برای ذخیره وضعیت در localStorage
 const saveState = (city: CityData | null) => {
     try {
-        if (city) {
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(city));
-        } else {
-            localStorage.removeItem(LOCAL_STORAGE_KEY);
-        }
-    } catch (error) {
-        console.error("Could not save weather state to localStorage:", error);
+        if (city) localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(city));
+        else localStorage.removeItem(LOCAL_STORAGE_KEY);
+    } catch (e) {
+        console.error('Failed to save weather city', e);
     }
 };
 
 export const useWeatherStore = defineStore('weather', {
-    // هنگام بارگذاری Store، وضعیت از localStorage لود می‌شود
     state: loadState,
-
     actions: {
-        /**
-         * شهر انتخاب شده را ذخیره کرده و در localStorage ماندگار می‌کند.
-         */
         saveWeatherCity(city: CityData | null) {
             this.savedCity = city;
-            // ذخیره در localStorage
             saveState(city);
         },
     },
-
     getters: {
-        getSavedCity: (state) => state.savedCity,
-    }
+        getSavedCity: (state): CityData | null => state.savedCity,
+    },
 });
