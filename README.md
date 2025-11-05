@@ -18,7 +18,7 @@
 <div align="center">
   <img src="./src/assets/screenshots/mainpage.png" alt="Main Dashboard - Dark Mode (Farsi RTL)" width="800"/>
   <br/>
-  <sub><b>Main Dashboard – Dark Mode (Farsi RTL)</b></sub>
+  <sub><b>Main Dashboard – Light Mode (English LTR)</b></sub>
 </div>
 
 ---
