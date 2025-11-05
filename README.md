@@ -13,6 +13,16 @@
 
 ---
 
+## Screenshot
+
+<div align="center">
+  <img src="./src/assets/screenshots/mainpage.png" alt="Main Dashboard - Dark Mode (Farsi RTL)" width="800"/>
+  <br/>
+  <sub><b>Main Dashboard – Dark Mode (Farsi RTL)</b></sub>
+</div>
+
+---
+
 ## Features
 
 | Feature | Implementation |
@@ -31,25 +41,27 @@
 
 ```bash
 src/
-├── assets/              # Icons & static assets
-├── components/          # Reusable UI components
+├── assets/              
+│   └── screenshots/     
+│       └── mainpage.png 
+├── components/          
 │   ├── FirstVisitModal.vue
 │   ├── NotificationSystem.vue
 │   ├── TheAppBar.vue
 │   └── TheSidebar.vue
-├── data/                # Static data
+├── data/                
 │   └── iran-cities.json
-├── i18n/                # Localization
+├── i18n/                
 │   ├── index.ts
 │   └── locales/
-├── router/              # Vue Router routes
-├── services/            # API service layer
-├── stores/              # Pinia stores
+├── router/              
+├── services/            
+├── stores/              
 │   ├── notifications.ts
 │   ├── settings.ts
 │   ├── todos.ts
 │   └── weather.ts
-├── views/               # Page-level components
+├── views/               
 │   ├── DashboardView.vue
 │   ├── ProfileView.vue
 │   ├── TodosView.vue
@@ -59,7 +71,7 @@ src/
 └── env.d.ts
 
 cypress/
-├── e2e/                 # End-to-end test specs
+├── e2e/                 
 ├── fixtures/
 ├── support/
 └── cypress.config.ts
