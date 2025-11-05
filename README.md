@@ -1,73 +1,65 @@
-# 🚀 NADINSOFT-VUETASK | Advanced Vue 3 & TypeScript Application
+# NADINSOFT-VUETASK  
+## Advanced Vue 3 + TypeScript + Vuetify 3 SPA with Cypress E2E Testing
 
-> A robust Single Page Application (SPA) built with a modern Vue 3 ecosystem, focusing on superior **State Management**, full **TypeScript** safety, **responsive design**, and comprehensive **bilingual support**. This project demonstrates high-standard architecture for scalable frontend development.
+> **A production-ready, fully typed, bilingual (EN/FA), responsive task management app** with **end-to-end testing** powered by **Cypress**.
 
-## 🌟 Project Status & Technologies
-
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
-[![Vue](https://img.shields.io/badge/Vue.js-3.x-4FC08D?style=for-the-badge&logo=vue.js)](https://vuejs.org/)
-[![Vuetify](https://img.shields.io/badge/Vuetify-3.x-1867C0?style=for-the-badge&logo=vuetify)](https://vuetifyjs.com/)
-[![Pinia](https://img.shields.io/badge/State_Management-Pinia-FFD300?style=for-the-badge&logo=pinia)](https://pinia.vuejs.org/)
-[![i18n](https://img.shields.io/badge/i18n-Bilingual-E91E63?style=for-the-badge&logo=i18n)](https://vue-i18n.intlify.dev/)
-[![Build Tool](https://img.shields.io/badge/Build-Vite-646CFF?style=for-the-badge&logo=vite)](https://vitejs.dev/)
-
----
-
-## 💎 Key Features & Implementation Highlights
-
-| Feature Area | Description | Architectural Implementation |
-| :--- | :--- | :--- |
-| **Bilingual Support (i18n)** | Full support for **English (LTR)** and **Farsi (RTL)**, including dynamic switching of the document direction (`dir` attribute) based on the active locale. | `vue-i18n`, Vue Watchers, and `vuetify-i18n` integration. |
-| **State Persistence** | All user settings (Name, Theme, Locale) are automatically stored in **Local Storage** upon change and retrieved upon page load. | Pinia Watchers in `settings.ts` manage persistence logic. |
-| **Layout & Responsiveness** | Fully **Responsive** layout designed using Vuetify 3's grid system, ensuring a consistent experience across all device sizes. | Consolidated layout (`App Bar`, `Navigation Drawer`) within `App.vue`. |
-| **Core Functionality** | Includes dedicated views for: **Dashboard** (personalized welcome), **Todos** (add/remove tasks), **Weather** (city search via Open-Meteo API), and **Profile** (settings management). | Pinia Stores (`todos.ts`, `settings.ts`) and Vue Router. |
+![Vue](https://img.shields.io/badge/Vue.js-3.x-4FC08D?style=for-the-badge&logo=vue.js)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=for-the-badge&logo=typescript)
+![Vuetify](https://img.shields.io/badge/Vuetify-3.x-1867C0?style=for-the-badge&logo=vuetify)
+![Pinia](https://img.shields.io/badge/Pinia-State-FFD300?style=for-the-badge&logo=pinia)
+![Vite](https://img.shields.io/badge/Vite-Build-646CFF?style=for-the-badge&logo=vite)
+![i18n](https://img.shields.io/badge/i18n-Bilingual-E91E63?style=for-the-badge)
+![Cypress](https://img.shields.io/badge/Cypress-E2E_Testing-17202C?style=for-the-badge&logo=cypress)
 
 ---
 
-## 🏗️ Technical Architecture
+## Features
 
-### 1. Vue & Language
-* **Vue 3 Composition API:** Exclusive use of `<script setup>` for highly readable, performant, and easily testable components.
-* **TypeScript:** Enforced **strict type checking** across the entire application, essential for Pinia stores, routing, and data structures.
-
-### 2. State Management (Pinia)
-* **Modular Stores:** Settings logic (`settings.ts`) and Todos logic (`todos.ts`) are completely separated.
-* **Encapsulated Actions:** Actions like `toggleTheme` are defined within the store, ensuring that UI components only dispatch actions without containing business logic.
-
-### 3. Styling & UI (Vuetify)
-* **Vuetify 3:** Utilized for rapid development of a Material Design interface.
-* **Theme Integration:** Vuetify's theme system is synchronized with the Pinia store for seamless global theme changes.
+| Feature | Implementation |
+|-------|----------------|
+| **Bilingual UI (EN/FA)** | Full RTL/LTR support with dynamic `dir` switching |
+| **Persistent Settings** | Theme, locale, user name saved to `localStorage` |
+| **Responsive Design** | Mobile-first layout using Vuetify 3 Grid |
+| **Todo Management** | Add, edit, delete, filter, sort, toggle completion |
+| **Weather Dashboard** | Real-time data via **Open-Meteo API** |
+| **Profile & Settings** | Personalized dashboard with full control |
+| **End-to-End Testing** | **Cypress** tests for all critical user flows |
 
 ---
 
+## Project Structure
 
-## ⚙️ Development Setup
+```bash
+src/
+├── assets/              # Icons & static assets
+├── components/          # Reusable UI components
+│   ├── FirstVisitModal.vue
+│   ├── NotificationSystem.vue
+│   ├── TheAppBar.vue
+│   └── TheSidebar.vue
+├── data/                # Static data
+│   └── iran-cities.json
+├── i18n/                # Localization
+│   ├── index.ts
+│   └── locales/
+├── router/              # Vue Router routes
+├── services/            # API service layer
+├── stores/              # Pinia stores
+│   ├── notifications.ts
+│   ├── settings.ts
+│   ├── todos.ts
+│   └── weather.ts
+├── views/               # Page-level components
+│   ├── DashboardView.vue
+│   ├── ProfileView.vue
+│   ├── TodosView.vue
+│   └── WeatherView.vue
+├── App.vue
+├── main.ts
+└── env.d.ts
 
-### Prerequisites
-
-* Node.js (LTS Version 18+)
-* npm (or yarn/pnpm)
-
-### 1. Installation
-
-```sh
-# Clone the repository
-git clone https://github.com/KasraJamei/NadinSoft-VueTask.git
-cd NadinSoft-VueTask
-
-# Install dependencies
-npm install
-
-```
-
-### 2. Available Scripts
-
-```sh
-npm run dev
-Compiles and hot-reloads for development (Vite Dev Server).
-npm run build
-Compiles and minifies for production (Output in ./dist).
-npm run preview
-Serves the production build locally for verification.
-
-```
+cypress/
+├── e2e/                 # End-to-end test specs
+├── fixtures/
+├── support/
+└── cypress.config.ts
