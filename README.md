@@ -1,4 +1,3 @@
-# NADINSOFT-VUETASK  
 ## Advanced Vue 3 + TypeScript + Vuetify 3 SPA with Cypress E2E Testing
 
 > **A production-ready, fully typed, bilingual (EN/FA), responsive task management app** with **end-to-end testing** powered by **Cypress**.
