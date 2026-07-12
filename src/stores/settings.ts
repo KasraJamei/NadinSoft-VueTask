@@ -38,11 +38,16 @@ export const useSettingsStore = defineStore('settings', () => {
     const memberSince = computed(() => settings.value.memberSince);
 
     // Helpers
+    const THEME_NOTIFICATION_TYPE: Record<Theme, NotificationType> = {
+        light: 'theme_light',
+        dark: 'theme_dark',
+        glass: 'theme_glass',
+    };
+
     function _showThemeNotification(theme: Theme) {
         const notify = useNotificationStore();
         const message = t('notification.theme_changed', { theme: t(theme) });
-        const type: NotificationType = theme === 'light' ? 'theme_light' : 'theme_dark';
-        notify.info(message, type);
+        notify.info(message, THEME_NOTIFICATION_TYPE[theme]);
     }
 
     // Actions
@@ -65,8 +70,12 @@ export const useSettingsStore = defineStore('settings', () => {
         i18nLocale.value = newLocale;
     }
 
+    // Cycle order for the app-bar toggle button: light -> dark -> glass -> light
+    const THEME_CYCLE: Theme[] = ['light', 'dark', 'glass'];
+
     function toggleTheme() {
-        const newTheme: Theme = currentTheme.value === 'light' ? 'dark' : 'light';
+        const currentIndex = THEME_CYCLE.indexOf(currentTheme.value);
+        const newTheme = THEME_CYCLE[(currentIndex + 1) % THEME_CYCLE.length];
         updateTheme(newTheme);
     }
 

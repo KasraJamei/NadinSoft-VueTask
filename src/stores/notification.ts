@@ -4,7 +4,7 @@ import { defineStore } from 'pinia';
 export type NotificationType =
     | 'info' | 'success' | 'error'
     | 'add' | 'edit' | 'complete' | 'reopen' | 'delete'
-    | 'theme_light' | 'theme_dark' | 'name_update' | 'locale_change';
+    | 'theme_light' | 'theme_dark' | 'theme_glass' | 'name_update' | 'locale_change';
 
 export interface Notification {
     id: number;

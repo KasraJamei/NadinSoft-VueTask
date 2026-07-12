@@ -1,4 +1,4 @@
-export type Theme = 'light' | 'dark';
+export type Theme = 'light' | 'dark' | 'glass';
 export type Locale = 'en' | 'fa';
 
 export interface UserSettings {
