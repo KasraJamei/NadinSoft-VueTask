@@ -23,6 +23,7 @@ const getConfig = (type: string) => {
         locale_change: { color: '#0d47a1', icon: 'mdi-web', bgGradient: 'to right, #0d47a1, #1976d2' },
         theme_light: { color: '#ffc107', icon: 'mdi-white-balance-sunny', bgGradient: 'to right, #ffc107, #ffd54f' },
         theme_dark: { color: '#795548', icon: 'mdi-weather-night', bgGradient: 'to right, #795548, #a1887f' },
+        theme_glass: { color: '#6366f1', icon: 'mdi-blur', bgGradient: 'to right, #6366f1, #a855f7' },
         error: { color: '#d32f2f', icon: 'mdi-close-circle', bgGradient: 'to right, #d32f2f, #ef5350' },
         info: { color: '#2196f3', icon: 'mdi-information', bgGradient: 'to right, #2196f3, #42a5f5' },
         success: { color: '#4caf50', icon: 'mdi-check-circle', bgGradient: 'to right, #4caf50, #66bb6a' },

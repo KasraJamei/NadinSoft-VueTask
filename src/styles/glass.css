@@ -1,0 +1,140 @@
+/**
+ * Glassmorphism ("glass") theme
+ * ---------------------------------
+ * These styles activate only when Vuetify's `glass` theme is selected. Vuetify
+ * stamps the class `.v-theme--glass` onto the root `.v-application` element, so
+ * every rule below is scoped under it and leaves the light/dark themes untouched.
+ *
+ * The look is built from three ingredients:
+ *   1. An animated multi-colour gradient painted on the app backdrop.
+ *   2. Frosted, semi-transparent surfaces (cards, app bar, drawer, fields…)
+ *      that blur whatever sits behind them via `backdrop-filter`.
+ *   3. Hair-line light borders + soft shadows to give the "pane of glass" edge.
+ */
+
+/* ---- 1. Animated gradient backdrop ------------------------------------- */
+.v-theme--glass {
+    background: linear-gradient(-45deg, #1e3a8a, #4c1d95, #831843, #0f766e) !important;
+    background-size: 400% 400% !important;
+    animation: glass-gradient-shift 22s ease infinite;
+}
+
+@keyframes glass-gradient-shift {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* Keep the backdrop visible: let the main content layers stay transparent so
+   the gradient shows through the frosted panels. */
+.v-theme--glass .v-main,
+.v-theme--glass .v-container {
+    background: transparent !important;
+}
+
+/* Respect users who prefer reduced motion — hold a static gradient. */
+@media (prefers-reduced-motion: reduce) {
+    .v-theme--glass {
+        animation: none !important;
+    }
+}
+
+/* ---- 2. Shared frosted-surface treatment ------------------------------- */
+.v-theme--glass .v-card,
+.v-theme--glass .v-app-bar,
+.v-theme--glass .v-navigation-drawer,
+.v-theme--glass .v-list,
+.v-theme--glass .v-field__overlay,
+.v-theme--glass .v-overlay__content > .v-card,
+.v-theme--glass .v-menu > .v-overlay__content {
+    background-color: rgba(255, 255, 255, 0.10) !important;
+    backdrop-filter: blur(16px) saturate(160%);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: #f1f5f9 !important;
+}
+
+/* App bar: slightly darker tint so it reads as a header, plus a bottom edge. */
+.v-theme--glass .v-app-bar {
+    background-color: rgba(15, 23, 42, 0.35) !important;
+    border: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.25) !important;
+}
+
+/* Navigation drawer: full-height frosted panel with a divider edge. */
+.v-theme--glass .v-navigation-drawer {
+    background-color: rgba(15, 23, 42, 0.30) !important;
+    border: none;
+    border-inline-end: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+/* Cards: give a bit more depth than flat panels. */
+.v-theme--glass .v-card {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25) !important;
+}
+
+/* Lists nested inside the drawer/menus shouldn't double-blur or double-tint. */
+.v-theme--glass .v-navigation-drawer .v-list,
+.v-theme--glass .v-overlay__content .v-list {
+    background-color: transparent !important;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: none;
+}
+
+/* ---- 3. Interactive surfaces ------------------------------------------- */
+/* Form fields (profile page uses solo-filled inputs). */
+.v-theme--glass .v-field {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: inherit;
+}
+
+/* Hover / active nav + list rows get a soft highlight instead of solid fill. */
+.v-theme--glass .v-list-item--active,
+.v-theme--glass .v-list-item:hover {
+    background-color: rgba(255, 255, 255, 0.14) !important;
+}
+
+/* Tonal buttons used across dashboard cards read better with a light glass fill. */
+.v-theme--glass .v-btn.v-btn--variant-tonal .v-btn__overlay {
+    opacity: 0.14;
+}
+
+/* Chips (e.g. "Member Since"). */
+.v-theme--glass .v-chip {
+    background-color: rgba(255, 255, 255, 0.14) !important;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: #f1f5f9 !important;
+}
+
+/* Dividers become subtle light hair-lines. */
+.v-theme--glass .v-divider {
+    border-color: rgba(255, 255, 255, 0.16) !important;
+    opacity: 1;
+}
+
+/* Ensure emphasis text stays legible over the frosted panels. */
+.v-theme--glass .text-medium-emphasis {
+    color: rgba(241, 245, 249, 0.75) !important;
+}
+
+/* Several views hard-code surface/grey background utility classes for their
+   light/dark branches (e.g. the sidebar profile tile, dashboard cards). Soften
+   those to translucent so they blend into the frosted aesthetic. */
+.v-theme--glass .bg-surface,
+.v-theme--glass .bg-grey-lighten-4 {
+    background-color: rgba(255, 255, 255, 0.10) !important;
+    color: #f1f5f9 !important;
+}

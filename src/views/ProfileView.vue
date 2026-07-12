@@ -23,8 +23,15 @@ const localeOptions = computed(() => [
 
 const themeOptions = computed(() => [
     { value: 'light', title: t('light') },
-    { value: 'dark', title: t('dark') }
+    { value: 'dark', title: t('dark') },
+    { value: 'glass', title: t('glass') }
 ]);
+
+const themeIcons: Record<string, string> = {
+    light: 'mdi-brightness-7',
+    dark: 'mdi-brightness-4',
+    glass: 'mdi-blur'
+};
 
 const isNameChanged = ref(false);
 const showSaveButton = computed(
@@ -137,7 +144,7 @@ watch(() => settingsStore.currentLocale, formatMemberSince);
                                 <v-select v-model="newTheme" :items="themeOptions" :label="t('Theme')"
                                     item-title="title" item-value="value" variant="solo-filled" hide-details rounded
                                     class="mb-3" :class="{ 'rtl-input': isRtl, 'rtl-select': isRtl }"
-                                    :prepend-inner-icon="newTheme === 'light' ? 'mdi-brightness-7' : 'mdi-brightness-4'">
+                                    :prepend-inner-icon="themeIcons[newTheme]">
                                 </v-select>
                             </v-col>
 
